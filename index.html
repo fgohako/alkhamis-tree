@@ -68,8 +68,8 @@
     }
   </script>
   
-  <!-- Clean Master Dataset (v6.0.0) -->
-  <script src="public/family_data.js?v=6.0.0"></script>
+  <!-- Clean Master Dataset (v6.1.0) -->
+  <script src="public/family_data.js?v=6.1.0"></script>
 
   <style>
     /* ================= DUAL THEME SYSTEM CSS VARIABLES ================= */
@@ -2325,12 +2325,25 @@
         svg += `<line x1="${cx}" y1="${nHusain.y + nHusain.height}" x2="${acx}" y2="${nAliHusain.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
       }
 
-      // 1. Hassan -> Husain bin Hassan
+      // 1. Hassan -> Husain & Mohammed
       const nHassan = nodeMap.get('k34_hassan_father');
       const nHusainSon = nodeMap.get('k34_husain_son');
-      if (nHassan && nHusainSon) {
+      const nMhdSon = nodeMap.get('k34_mohammed_hassan');
+      if (nHassan) {
         const cx = nHassan.x + nHassan.width / 2;
-        svg += `<line x1="${cx}" y1="${nHassan.y + nHassan.height}" x2="${cx}" y2="${nHusainSon.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
+        if (nHusainSon && nMhdSon) {
+          const forkY = 815;
+          const kx1 = nHusainSon.x + nHusainSon.width / 2;
+          const kx2 = nMhdSon.x + nMhdSon.width / 2;
+          svg += `
+            <line x1="${cx}" y1="${nHassan.y + nHassan.height}" x2="${cx}" y2="${forkY}" stroke="${strokeCol}" stroke-width="2.5" />
+            <line x1="${kx1}" y1="${forkY}" x2="${kx2}" y2="${forkY}" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" />
+            <line x1="${kx1}" y1="${forkY}" x2="${kx1}" y2="${nHusainSon.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" />
+            <line x1="${kx2}" y1="${forkY}" x2="${kx2}" y2="${nMhdSon.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" />
+          `;
+        } else if (nHusainSon) {
+          svg += `<line x1="${cx}" y1="${nHassan.y + nHassan.height}" x2="${nHusainSon.x + nHusainSon.width / 2}" y2="${nHusainSon.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
+        }
       }
 
       // 2. Mohammed Redha & Zainab -> 4 Children (Ahmed, Ali, Afaf, Kawthar)

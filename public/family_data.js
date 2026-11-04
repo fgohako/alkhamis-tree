@@ -3,7 +3,7 @@ window.FAMILY_DATA = {
     "title": "مشجرة عائلة آل خميس الكبرى — قاعدة البيانات الموثقة الشاملة",
     "total_individuals": 2540,
     "classical_ancestors_count": 37,
-    "k34_nodes_count": 38,
+    "k34_nodes_count": 39,
     "branches": [
       "K34",
       "K01-K15",
@@ -1466,7 +1466,7 @@ window.FAMILY_DATA = {
       "name": "حسن بن علي بن عيسى آل خميس",
       "short_name": "حسن بن علي",
       "name_en": "Hassan bin Ali",
-      "role": "والد الأسرة",
+      "role": "عم الأسرة",
       "generation": "الجيل السابع",
       "dates": "1970 - معاصر",
       "status": "على قيد الحياة",
@@ -1480,9 +1480,10 @@ window.FAMILY_DATA = {
         "k34_batool"
       ],
       "child_ids": [
-        "k34_husain_son"
+        "k34_husain_son",
+        "k34_mohammed_hassan"
       ],
-      "notes": "ابن علي بن عيسى آل خميس، والد حسين بن حسن."
+      "notes": "عم الأسرة الموقر، ابن علي بن عيسى آل خميس، والد حسين ومحمد."
     },
     {
       "id": "k34_mohammed_redha_uncle",
@@ -1662,20 +1663,50 @@ window.FAMILY_DATA = {
       "name": "حسين بن حسن بن علي بن عيسى آل خميس",
       "short_name": "حسين بن حسن",
       "name_en": "Husain bin Hassan",
-      "role": "حفيد علي بن عيسى آل خميس",
+      "role": "ابن الأسرة (حفيد علي بن عيسى)",
       "generation": "الجيل الثامن",
       "dates": "2000 - معاصر",
       "status": "على قيد الحياة",
       "status_type": "living",
-      "x": 1640,
+      "branch": "فرع عيسى وعلي بن خميس (السنابس)",
+      "sub_branch": "K34",
+      "birth": "2000",
+      "death": "",
+      "x": 1530,
       "y": 870,
-      "width": 200,
+      "width": 160,
       "height": 52,
       "parent_ids": [
         "k34_hassan_father"
       ],
-      "notes": "ابن حسن بن علي بن عيسى آل خميس، حفيد علي بن عيسى.",
-      "child_ids": []
+      "spouse_ids": [],
+      "child_ids": [],
+      "notes": "ابن حسن بن علي بن عيسى آل خميس، حفيد علي بن عيسى."
+    },
+    {
+      "id": "k34_mohammed_hassan",
+      "name": "محمد بن حسن بن علي بن عيسى آل خميس",
+      "short_name": "محمد بن حسن",
+      "name_en": "Mohammed bin Hassan",
+      "role": "ابن الأسرة (حفيد علي بن عيسى)",
+      "generation": "الجيل الثامن",
+      "dates": "2012 - معاصر",
+      "status": "على قيد الحياة",
+      "status_type": "living",
+      "branch": "فرع عيسى وعلي بن خميس (السنابس)",
+      "sub_branch": "K34",
+      "birth": "2012",
+      "death": "",
+      "x": 1700,
+      "y": 870,
+      "width": 160,
+      "height": 52,
+      "parent_ids": [
+        "k34_hassan_father"
+      ],
+      "spouse_ids": [],
+      "child_ids": [],
+      "notes": "ابن حسن بن علي بن عيسى آل خميس، من جيل الشباب المعاصر لأسرة آل خميس بالسنابس."
     },
     {
       "id": "k34_ahmed_mredha",

@@ -1,10 +1,10 @@
-const CACHE_NAME = 'khamis-tree-pwa-v6';
+const CACHE_NAME = 'khamis-tree-pwa-v7';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
-  './public/family_data.js?v=6.0.0',
-  './public/family_data.json?v=6.0.0',
+  './public/family_data.js?v=6.1.0',
+  './public/family_data.json?v=6.1.0',
   './public/icon-192.png'
 ];
 
