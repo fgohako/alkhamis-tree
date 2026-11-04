@@ -401,6 +401,17 @@
         <span class="font-arabic text-[11px] hidden sm:inline">إضافة فرد</span>
       </button>
 
+      <!-- Publish / Cloud Sync Quick Action -->
+      <button 
+        id="publishSyncBtn"
+        onclick="openPublishModal()" 
+        class="px-2.5 sm:px-3 py-1.5 rounded-xl text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md hover:scale-105 active:scale-95 cursor-pointer shrink-0 bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800"
+        title="نشر ومزامنة التعديلات والإضافات مع الجميع على الهاتف والكمبيوتر"
+      >
+        <span>🚀</span>
+        <span class="font-arabic text-[11px] hidden sm:inline">نشر للجميع</span>
+      </button>
+
       <!-- Theme Toggle Button (Parchment Heirloom vs Dark Archival) -->
       <button 
         id="themeToggleBtn"
@@ -765,6 +776,115 @@
           </button>
         </div>
       </form>
+    </div>
+  </div>
+
+  <!-- ================= PUBLISH & CLOUD SYNC MODAL ================= -->
+  <div id="publishModal" onclick="if(event.target === this) closePublishModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+    <div class="border rounded-2xl shadow-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 text-right transition-all transform scale-100" style="background: var(--card-bg); border-color: var(--gold-accent);" dir="rtl">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color: var(--card-border);">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">🚀</span>
+          <div>
+            <h3 class="text-sm font-bold font-arabic" style="color: var(--text-main);">نشر المشجرة ومزامنة البيانات للجميع</h3>
+            <p class="text-[10px]" style="color: var(--text-muted);">إتاحة الأفراد الجدد والتعديلات لجميع أفراد الأسرة على الهواتف والكمبيوتر</p>
+          </div>
+        </div>
+        <button onclick="closePublishModal()" class="text-slate-400 hover:text-slate-200 text-lg cursor-pointer">✕</button>
+      </div>
+
+      <!-- Pending Changes Summary -->
+      <div class="mb-4 p-3 rounded-xl border bg-amber-500/10 border-amber-500/30 text-xs font-arabic">
+        <div class="font-bold mb-1.5 flex items-center justify-between" style="color: var(--text-main);">
+          <span>📊 التعديلات المحفوظة على هذا الجهاز:</span>
+          <span id="publishPendingBadge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-600 text-white">0 تعديل</span>
+        </div>
+        <div class="grid grid-cols-2 gap-2 text-[11px] mt-2">
+          <div class="p-2 rounded-lg bg-black/5 dark:bg-white/5 border border-amber-500/20">
+            <span class="text-slate-500 dark:text-slate-400">أفراد مضافون: </span>
+            <strong id="publishAddedCount" class="text-emerald-600 dark:text-emerald-400 font-bold">0</strong>
+          </div>
+          <div class="p-2 rounded-lg bg-black/5 dark:bg-white/5 border border-amber-500/20">
+            <span class="text-slate-500 dark:text-slate-400">بيانات معدلة: </span>
+            <strong id="publishEditedCount" class="text-amber-600 dark:text-amber-400 font-bold">0</strong>
+          </div>
+        </div>
+      </div>
+
+      <!-- Method 1: Direct GitHub Push -->
+      <div class="mb-4 p-3.5 rounded-xl border border-emerald-500/30 bg-emerald-500/5">
+        <h4 class="font-bold text-xs flex items-center gap-1.5 mb-1.5 text-emerald-700 dark:text-emerald-400">
+          <span>🌐</span>
+          <span>1. النشر المباشر لخادم GitHub (ليظهر للجميع تلقائياً)</span>
+        </h4>
+        <p class="text-[10px] mb-3 text-slate-500 dark:text-slate-400 leading-relaxed">
+          يقوم هذا الخيار بتحديث قاعدة البيانات المعتمدة ونشرها فوراً على خادم GitHub Pages لتظهر التعديلات لجميع الزوار على الهواتف والكمبيوتر.
+        </p>
+        
+        <div class="mb-3">
+          <label class="block text-[11px] font-bold mb-1" style="color: var(--text-main);">رمز مصادقة النشر (GitHub Token):</label>
+          <input 
+            type="password" 
+            id="ghTokenInput" 
+            placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" 
+            class="w-full border rounded-xl p-2 text-xs font-mono focus:outline-none"
+            style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+          >
+          <p class="text-[9px] text-slate-400 mt-1">يُحفظ الرمز بأمان محلياً في متصفحك فقط ولا يشاركه أحد.</p>
+        </div>
+
+        <button 
+          id="ghPublishSubmitBtn"
+          onclick="publishToGitHub()" 
+          class="w-full py-2.5 rounded-xl text-white font-bold text-xs shadow-md bg-emerald-600 hover:bg-emerald-700 transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>🚀</span>
+          <span>نشر التعديلات الآن للجميع على GitHub</span>
+        </button>
+      </div>
+
+      <!-- Method 2: Smart Share Link -->
+      <div class="mb-4 p-3.5 rounded-xl border" style="border-color: var(--card-border); background: var(--canvas-bg);">
+        <h4 class="font-bold text-xs flex items-center gap-1.5 mb-1.5 text-amber-600 dark:text-amber-400">
+          <span>🔗</span>
+          <span>2. رابط المشاركة الذكي (نقل فوري للهاتف عبر واتساب)</span>
+        </h4>
+        <p class="text-[10px] mb-2.5 text-slate-500 dark:text-slate-400 leading-relaxed">
+          انسخ رابطاً ذكياً يتضمن الأفراد والتعديلات الجديدة. بمجرد فتح الرابط على هاتفك، يتم استيراد البيانات وعرض الفرد فوراً.
+        </p>
+        <button 
+          onclick="copySmartSyncUrl()" 
+          class="w-full py-2 rounded-xl border text-xs font-bold text-amber-700 dark:text-amber-300 border-amber-500/40 hover:bg-amber-500/10 transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>📲</span>
+          <span>نسخ الرابط الذكي للمشجرة</span>
+        </button>
+      </div>
+
+      <!-- Method 3: Export / Import File -->
+      <div class="p-3.5 rounded-xl border" style="border-color: var(--card-border);">
+        <h4 class="font-bold text-xs flex items-center gap-1.5 mb-1.5" style="color: var(--text-main);">
+          <span>💾</span>
+          <span>3. النسخ الاحتياطي ونقل الملفات</span>
+        </h4>
+        <div class="flex gap-2">
+          <button 
+            type="button"
+            onclick="exportCustomData()" 
+            class="flex-1 py-1.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer"
+            style="border-color: var(--card-border); color: var(--text-main);"
+          >
+            📥 تصدير ملف المشجرة
+          </button>
+          <label class="flex-1 py-1.5 rounded-xl border text-xs font-semibold hover:bg-black/5 dark:hover:bg-white/5 transition-all text-center cursor-pointer flex items-center justify-center gap-1" style="border-color: var(--card-border); color: var(--text-main);">
+            <span>📤 استيراد ملف</span>
+            <input type="file" id="importJsonFileInput" accept=".json" onchange="importCustomDataFile(event)" class="hidden">
+          </label>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -2196,6 +2316,15 @@
       }
 
       // --- Chain E: Generation 7 to Generation 8 (The Grandchildren) ---
+      // 0. Husain bin Ali -> Ali bin Husain
+      const nHusain = nodeMap.get('k34_husain_uncle');
+      const nAliHusain = nodeMap.get('k34_ali_husain');
+      if (nHusain && nAliHusain) {
+        const cx = nHusain.x + nHusain.width / 2;
+        const acx = nAliHusain.x + nAliHusain.width / 2;
+        svg += `<line x1="${cx}" y1="${nHusain.y + nHusain.height}" x2="${acx}" y2="${nAliHusain.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
+      }
+
       // 1. Hassan -> Husain bin Hassan
       const nHassan = nodeMap.get('k34_hassan_father');
       const nHusainSon = nodeMap.get('k34_husain_son');
@@ -4016,11 +4145,23 @@
         const stored = localStorage.getItem('khamis_custom_family_members');
         if (stored) {
           customFamilyMembers = JSON.parse(stored);
+          const masterNodes = window.FAMILY_DATA?.k34_nodes || [];
+          const masterInds = window.FAMILY_DATA?.individuals || [];
+          customFamilyMembers = customFamilyMembers.filter(cm => {
+            const inK34 = masterNodes.some(mn => 
+              mn.id === cm.id || 
+              (mn.short_name === cm.short_name && (cm.parent_ids || []).some(pid => (mn.parent_ids || []).includes(pid)))
+            );
+            const inInds = masterInds.some(mi => mi.id === cm.id);
+            return !inK34 && !inInds;
+          });
+          localStorage.setItem('khamis_custom_family_members', JSON.stringify(customFamilyMembers));
           mergeCustomMembersIntoDataset();
         }
       } catch (e) {
         console.error('Error loading custom family members:', e);
       }
+      updatePublishBadge();
     }
 
     function mergeCustomMembersIntoDataset() {
@@ -4314,6 +4455,7 @@
       cachedRegistryList = null;
 
       closeAddMemberModal();
+      updatePublishBadge();
       showToast(`تمت إضافة "${shortName}" إلى المشجرة بنجاح 🌿`, '✨');
 
       // Determine target view and navigate directly to newly added person
@@ -4358,6 +4500,7 @@
       cachedRegistryList = null;
 
       closePersonDrawer();
+      updatePublishBadge();
       showToast('تم حذف الفرد بنجاح من المشجرة 🗑️', '✨');
 
       if (activeView === 'k34') renderChartK34();
@@ -4382,6 +4525,7 @@
       } catch (e) {
         console.error('Error loading edited family members:', e);
       }
+      updatePublishBadge();
     }
 
     function mergeEditedMembersIntoDataset() {
@@ -4518,8 +4662,9 @@
 
       const targetId = editingMemberTargetId;
       closeEditMemberModal();
+      updatePublishBadge();
       showToast(`تم حفظ وتحديث بيانات "${shortName || person.short_name}" بنجاح ✏️`, '✨');
-
+ 
       if (activeView === 'k34') renderChartK34();
       else if (activeView === 'master') renderMasterTreeToAdam();
       else if (activeView === 'registry') renderRegistryTable();
@@ -4542,6 +4687,7 @@
       cachedRegistryList = null;
 
       closeEditMemberModal();
+      updatePublishBadge();
       showToast('تم استعادة البيانات الأصلية بنجاح ↺', '✨');
 
       if (activeView === 'k34') renderChartK34();
@@ -4561,6 +4707,228 @@
       downloadAnchor.click();
       downloadAnchor.remove();
       showToast('تم تصدير ملف بيانات العائلة المحدث بنجاح 💾', '✨');
+    }
+
+    /* ==========================================================================
+       PUBLISH TO GITHUB & CROSS-DEVICE CLOUD SYNC ENGINE
+       ========================================================================== */
+    function safeUtf8ToBase64(str) {
+      try {
+        return btoa(encodeURIComponent(str).replace(/%([0-9A-F]{2})/g, (match, p1) => String.fromCharCode('0x' + p1)));
+      } catch (e) {
+        return btoa(unescape(encodeURIComponent(str)));
+      }
+    }
+
+    function safeBase64ToUtf8(str) {
+      try {
+        return decodeURIComponent(Array.prototype.map.call(atob(str), c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
+      } catch (e) {
+        try {
+          return decodeURIComponent(escape(atob(str)));
+        } catch (e2) {
+          return atob(str);
+        }
+      }
+    }
+
+    function updatePublishBadge() {
+      const addedCount = customFamilyMembers ? customFamilyMembers.length : 0;
+      const editedCount = editedFamilyMembers ? Object.keys(editedFamilyMembers).length : 0;
+      const totalChanges = addedCount + editedCount;
+
+      const badgeEl = document.getElementById('publishPendingBadge');
+      const addedEl = document.getElementById('publishAddedCount');
+      const editedEl = document.getElementById('publishEditedCount');
+      const syncBtn = document.getElementById('publishSyncBtn');
+
+      if (badgeEl) badgeEl.textContent = `${totalChanges} تعديل`;
+      if (addedEl) addedEl.textContent = addedCount;
+      if (editedEl) editedEl.textContent = editedCount;
+
+      if (syncBtn) {
+        if (totalChanges > 0) {
+          syncBtn.classList.add('ring-2', 'ring-emerald-400', 'animate-pulse');
+        } else {
+          syncBtn.classList.remove('ring-2', 'ring-emerald-400', 'animate-pulse');
+        }
+      }
+    }
+
+    function openPublishModal() {
+      updatePublishBadge();
+      const tokenInput = document.getElementById('ghTokenInput');
+      const savedToken = localStorage.getItem('khamis_gh_token');
+      if (tokenInput && savedToken) {
+        tokenInput.value = savedToken;
+      }
+      document.getElementById('publishModal').classList.remove('hidden');
+    }
+
+    function closePublishModal() {
+      document.getElementById('publishModal').classList.add('hidden');
+    }
+
+    async function publishToGitHub() {
+      const tokenInput = document.getElementById('ghTokenInput');
+      let token = (tokenInput ? tokenInput.value : '').trim();
+      if (!token) {
+        token = localStorage.getItem('khamis_gh_token');
+      }
+
+      if (!token) {
+        alert('يرجى إدخال رمز مصادقة GitHub (Personal Access Token) لنشر التحديثات للجميع.');
+        tokenInput?.focus();
+        return;
+      }
+
+      localStorage.setItem('khamis_gh_token', token);
+
+      const submitBtn = document.getElementById('ghPublishSubmitBtn');
+      const originalBtnHtml = submitBtn.innerHTML;
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = `<span>⏳</span><span>جارٍ النشر إلى مستودع GitHub...</span>`;
+
+      try {
+        const repoOwner = 'fgohako';
+        const repoName = 'alkhamis-tree';
+        const filePath = 'public/family_data.js';
+        const branch = 'main';
+
+        // 1. Fetch current file SHA
+        const getFileUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}?ref=${branch}`;
+        const getRes = await fetch(getFileUrl, {
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        });
+
+        if (!getRes.ok) {
+          throw new Error(`تعذر الوصول إلى مستودع GitHub (${getRes.status}: ${getRes.statusText}). يرجى التأكد من صلاحيات الرمز.`);
+        }
+
+        const fileData = await getRes.json();
+        const currentSha = fileData.sha;
+
+        // 2. Prepare clean updated family dataset
+        const cleanData = JSON.parse(JSON.stringify(window.FAMILY_DATA));
+        if (cleanData.k34_nodes) {
+          cleanData.k34_nodes.forEach(n => {
+            delete n._source; delete n._targetView; delete n._searchStr; delete n._original;
+          });
+        }
+        if (cleanData.individuals) {
+          cleanData.individuals.forEach(i => {
+            delete i._source; delete i._targetView; delete i._searchStr; delete i._original;
+          });
+        }
+        if (cleanData.classical_ancestors) {
+          cleanData.classical_ancestors.forEach(c => {
+            delete c._source; delete c._targetView; delete c._searchStr; delete c._original;
+          });
+        }
+        cleanData.metadata = cleanData.metadata || {};
+        cleanData.metadata.last_published = new Date().toISOString();
+        if (cleanData.k34_nodes) cleanData.metadata.k34_nodes_count = cleanData.k34_nodes.length;
+        if (cleanData.individuals) cleanData.metadata.total_individuals = cleanData.individuals.length;
+
+        const updatedCode = `window.FAMILY_DATA = ${JSON.stringify(cleanData, null, 2)};\n`;
+        const b64Content = safeUtf8ToBase64(updatedCode);
+
+        // 3. Commit and push directly to GitHub main branch
+        const putFileUrl = `https://api.github.com/repos/${repoOwner}/${repoName}/contents/${filePath}`;
+        const putRes = await fetch(putFileUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${token}`,
+            'Accept': 'application/vnd.github.v3+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            message: `feat: update family tree with new members & edits [${new Date().toISOString().slice(0, 10)}]`,
+            content: b64Content,
+            sha: currentSha,
+            branch: branch
+          })
+        });
+
+        if (!putRes.ok) {
+          const errData = await putRes.json().catch(() => ({}));
+          throw new Error(errData.message || `فشل النشر (${putRes.status}: ${putRes.statusText})`);
+        }
+
+        // 4. On success: clear local storage drafts as they are now officially in the master repository
+        customFamilyMembers = [];
+        localStorage.removeItem('khamis_custom_family_members');
+        editedFamilyMembers = {};
+        localStorage.removeItem('khamis_edited_members');
+        updatePublishBadge();
+
+        closePublishModal();
+        showToast('تم نشر المشجرة بنجاح إلى GitHub للجميع! 🚀 ستظهر لجميع الهواتف خلال دقيقة', '✨');
+      } catch (err) {
+        console.error('Publish error:', err);
+        alert(`حدث خطأ أثناء النشر: ${err.message}`);
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = originalBtnHtml;
+      }
+    }
+
+    function copySmartSyncUrl() {
+      const payload = {};
+      if (customFamilyMembers && customFamilyMembers.length > 0) payload.custom = customFamilyMembers;
+      if (editedFamilyMembers && Object.keys(editedFamilyMembers).length > 0) payload.edits = editedFamilyMembers;
+
+      const url = new URL(window.location.href);
+      url.searchParams.set('v', activeView);
+      if (selectedNodeId) url.searchParams.set('id', selectedNodeId);
+
+      if (Object.keys(payload).length > 0) {
+        const b64 = safeUtf8ToBase64(JSON.stringify(payload));
+        url.searchParams.set('syncData', b64);
+      }
+
+      const finalUrl = url.toString();
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(finalUrl).then(() => {
+          showToast('تم نسخ الرابط الذكي بنجاح 📲 شاركه لأي هاتف!', '✨');
+        }).catch(() => {
+          prompt('انسخ الرابط التالي لمشاركته مع هاتفك:', finalUrl);
+        });
+      } else {
+        prompt('انسخ الرابط التالي لمشاركته مع هاتفك:', finalUrl);
+      }
+    }
+
+    function importCustomDataFile(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          if (importedData.k34_nodes || importedData.individuals) {
+            window.FAMILY_DATA = importedData;
+            window._personMap = null;
+            cachedRegistryList = null;
+            closePublishModal();
+            showToast('تم استيراد ملف المشجرة بنجاح وتحديث العرض 🌿', '✨');
+            if (activeView === 'k34') renderChartK34();
+            else if (activeView === 'master') renderMasterTreeToAdam();
+            else if (activeView === 'registry') renderRegistryTable();
+            else renderSubBranchView(activeView);
+          } else {
+            alert('صيغة الملف غير صالحة. تأكد من تحديد ملف JSON تم تصديره من المشجرة.');
+          }
+        } catch (err) {
+          alert('تعذر قراءة ملف JSON: ' + err.message);
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
     }
 
 
@@ -4640,6 +5008,43 @@
 
       // Parse URL parameters (supports ?v=... and ?id=... as well as legacy view=... and p=...)
       const urlParams = new URLSearchParams(window.location.search);
+      
+      // Unpack Smart Link Sync Data if present in URL
+      const syncParam = urlParams.get('syncData') || urlParams.get('cdata');
+      if (syncParam) {
+        try {
+          const jsonStr = safeBase64ToUtf8(syncParam);
+          const payload = JSON.parse(jsonStr);
+          let imported = false;
+          if (payload.custom && Array.isArray(payload.custom)) {
+            payload.custom.forEach(item => {
+              if (!customFamilyMembers.some(m => m.id === item.id) && !(window.FAMILY_DATA?.k34_nodes || []).some(n => n.id === item.id)) {
+                customFamilyMembers.push(item);
+                imported = true;
+              }
+            });
+            if (imported) {
+              localStorage.setItem('khamis_custom_family_members', JSON.stringify(customFamilyMembers));
+              mergeCustomMembersIntoDataset();
+            }
+          }
+          if (payload.edits && typeof payload.edits === 'object') {
+            Object.assign(editedFamilyMembers, payload.edits);
+            localStorage.setItem('khamis_edited_members', JSON.stringify(editedFamilyMembers));
+            mergeEditedMembersIntoDataset();
+            imported = true;
+          }
+          if (imported) {
+            window._personMap = null;
+            cachedRegistryList = null;
+            updatePublishBadge();
+            showToast('تمت مزامنة واستيراد بيانات الأفراد بنجاح 🌿', '✨');
+          }
+        } catch (e) {
+          console.warn('Could not unpack syncData:', e);
+        }
+      }
+
       const urlPersonId = urlParams.get('id') || urlParams.get('p') || urlParams.get('person');
       const urlView = urlParams.get('v') || urlParams.get('view') || urlParams.get('branch');
 

@@ -3,7 +3,7 @@ window.FAMILY_DATA = {
     "title": "مشجرة عائلة آل خميس الكبرى — قاعدة البيانات الموثقة الشاملة",
     "total_individuals": 2540,
     "classical_ancestors_count": 37,
-    "k34_nodes_count": 37,
+    "k34_nodes_count": 38,
     "branches": [
       "K34",
       "K01-K15",
@@ -1413,7 +1413,9 @@ window.FAMILY_DATA = {
         "k34_batool"
       ],
       "notes": "عم الأسرة الموقر، ابن علي بن عيسى.",
-      "child_ids": []
+      "child_ids": [
+        "k34_ali_husain"
+      ]
     },
     {
       "id": "k34_isa_uncle",
@@ -1629,6 +1631,31 @@ window.FAMILY_DATA = {
       ],
       "notes": "زوج السيدة فوزية بنت علي بن عيسى آل خميس.",
       "child_ids": []
+    },
+    {
+      "id": "k34_ali_husain",
+      "name": "علي بن حسين بن علي بن عيسى آل خميس",
+      "short_name": "علي بن حسين",
+      "name_en": "Ali bin Husain",
+      "role": "ابن الأسرة (حفيد علي بن عيسى)",
+      "generation": "الجيل الثامن",
+      "dates": "2006 - معاصر",
+      "status": "على قيد الحياة",
+      "status_type": "living",
+      "branch": "فرع عيسى وعلي بن خميس (السنابس)",
+      "sub_branch": "K34",
+      "birth": "2006",
+      "death": "",
+      "x": 955,
+      "y": 870,
+      "width": 180,
+      "height": 52,
+      "parent_ids": [
+        "k34_husain_uncle"
+      ],
+      "spouse_ids": [],
+      "child_ids": [],
+      "notes": "ابن حسين بن علي بن عيسى آل خميس، من جيل الشباب المعاصر لأسرة آل خميس بالسنابس."
     },
     {
       "id": "k34_husain_son",
