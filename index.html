@@ -742,9 +742,9 @@
 
         <!-- Searchable Archival Registry Table -->
         <div class="border rounded-2xl overflow-hidden shadow-xl" style="background: var(--card-bg); border-color: var(--card-border);">
-          <div class="overflow-x-auto">
+          <div class="overflow-x-auto max-h-[72vh] overflow-y-auto" style="-webkit-overflow-scrolling: touch;">
             <table class="w-full text-right text-xs">
-              <thead class="border-b font-amiri text-xs font-bold" style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);">
+              <thead class="sticky top-0 z-10 border-b font-amiri text-xs font-bold backdrop-blur-md shadow-sm" style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);">
                 <tr>
                   <th class="py-3 px-3 w-12 text-center">#</th>
                   <th class="py-3 px-3">الاسم المختصر</th>
@@ -1134,17 +1134,29 @@
       return Math.hypot(t1.clientX - t2.clientX, t1.clientY - t2.clientY);
     }
 
+    let touchStartedOnCard = false;
+    let touchStartClientX = 0;
+    let touchStartClientY = 0;
+    let touchMovedSignificantly = false;
+
     viewport.addEventListener('touchstart', (e) => {
       if (e.target.closest('button') || e.target.closest('input') || e.target.closest('select')) return;
       hideGestureHint();
 
-      if (e.touches.length === 1 && !e.target.closest('.tree-card')) {
-        isDragging = true;
-        isPinching = false;
+      if (e.touches.length === 1) {
+        touchStartedOnCard = !!e.target.closest('.tree-card');
+        touchStartClientX = e.touches[0].clientX;
+        touchStartClientY = e.touches[0].clientY;
+        touchMovedSignificantly = false;
         startX = e.touches[0].clientX - translateX;
         startY = e.touches[0].clientY - translateY;
-        document.body.classList.add('canvas-interacting');
+        isDragging = !touchStartedOnCard;
+        isPinching = false;
+        if (isDragging) {
+          document.body.classList.add('canvas-interacting');
+        }
       } else if (e.touches.length === 2) {
+        touchStartedOnCard = false;
         isDragging = false;
         isPinching = true;
         document.body.classList.add('canvas-interacting');
@@ -1160,10 +1172,19 @@
     viewport.addEventListener('touchmove', (e) => {
       e.preventDefault();
 
-      if (isDragging && e.touches.length === 1) {
-        translateX = e.touches[0].clientX - startX;
-        translateY = e.touches[0].clientY - startY;
-        requestTransformUpdate();
+      if (e.touches.length === 1) {
+        const dx = e.touches[0].clientX - touchStartClientX;
+        const dy = e.touches[0].clientY - touchStartClientY;
+        if (!isDragging && touchStartedOnCard && (Math.abs(dx) > 7 || Math.abs(dy) > 7)) {
+          isDragging = true;
+          touchMovedSignificantly = true;
+          document.body.classList.add('canvas-interacting');
+        }
+        if (isDragging) {
+          translateX = e.touches[0].clientX - startX;
+          translateY = e.touches[0].clientY - startY;
+          requestTransformUpdate();
+        }
       } else if (isPinching && e.touches.length === 2) {
         const currentDist = getTouchDistance(e.touches[0], e.touches[1]);
         if (initialPinchDist > 0) {
@@ -1188,6 +1209,7 @@
         isPinching = false;
         document.body.classList.remove('canvas-interacting');
         scheduleViewportCulling(120);
+        setTimeout(() => { touchMovedSignificantly = false; }, 80);
       } else if (e.touches.length === 1) {
         isPinching = false;
         isDragging = true;
@@ -2542,40 +2564,295 @@
     }
 
     /* ==========================================================================
-       8. VIEW 5: MASTER REGISTRY TABLE (SEARCHABLE 2,225+ INDIVIDUALS WITH FAST PAGINATION)
+       8. NEURAL KINSHIP ENGINE & EXACT TARGET VIEW RESOLUTION
+       ========================================================================== */
+    function getAncestors(id, byId, visited = new Set()) {
+      const node = byId.get(id);
+      if (!node || visited.has(id)) return [];
+      visited.add(id);
+      const pids = node.parent_ids || [];
+      const ancestors = [];
+      pids.forEach(pid => {
+        const p = byId.get(pid);
+        if (p) {
+          ancestors.push(p);
+          ancestors.push(...getAncestors(pid, byId, visited));
+        }
+      });
+      return ancestors;
+    }
+
+    function getDescendants(id, byId, visited = new Set()) {
+      const node = byId.get(id);
+      if (!node || visited.has(id)) return [];
+      visited.add(id);
+      const cids = node.child_ids || [];
+      const descendants = [];
+      cids.forEach(cid => {
+        const c = byId.get(cid);
+        if (c) {
+          descendants.push(c);
+          descendants.push(...getDescendants(cid, byId, visited));
+        }
+      });
+      return descendants;
+    }
+
+    function getSiblings(id, byId) {
+      const node = byId.get(id);
+      if (!node) return [];
+      const pids = node.parent_ids || [];
+      if (pids.length === 0) return [];
+      const sibSet = new Set();
+      pids.forEach(pid => {
+        const par = byId.get(pid);
+        if (par) {
+          (par.child_ids || []).forEach(cid => {
+            if (cid !== id && byId.has(cid)) sibSet.add(cid);
+          });
+        }
+      });
+      return Array.from(sibSet).map(sid => byId.get(sid)).filter(Boolean);
+    }
+
+    function getUncles(id, byId) {
+      const node = byId.get(id);
+      if (!node) return [];
+      const pids = node.parent_ids || [];
+      const uncleSet = new Set();
+      pids.forEach(pid => {
+        const parSibs = getSiblings(pid, byId);
+        parSibs.forEach(s => uncleSet.add(s.id));
+      });
+      return Array.from(uncleSet).map(uid => byId.get(uid)).filter(Boolean);
+    }
+
+    function getCousins(id, byId) {
+      const uncles = getUncles(id, byId);
+      const cousinSet = new Set();
+      uncles.forEach(u => {
+        (u.child_ids || []).forEach(cid => {
+          if (cid !== id && byId.has(cid)) cousinSet.add(cid);
+        });
+      });
+      return Array.from(cousinSet).map(cid => byId.get(cid)).filter(Boolean);
+    }
+
+    function traceNeuralKinship(personId) {
+      if (!personId || !window.FAMILY_DATA) return;
+      const allInds = window.FAMILY_DATA.individuals || [];
+      const byId = new Map(allInds.map(i => [i.id, i]));
+      (window.FAMILY_DATA.k34_nodes || []).forEach(n => byId.set(n.id, n));
+      (window.FAMILY_DATA.classical_ancestors || []).forEach(a => byId.set(a.id, a));
+
+      const person = byId.get(personId);
+      if (!person) return;
+
+      const ancestors = getAncestors(personId, byId);
+      const descendants = getDescendants(personId, byId);
+      const siblings = getSiblings(personId, byId);
+      const uncles = getUncles(personId, byId);
+      const cousins = getCousins(personId, byId);
+
+      const ancestorIds = new Set(ancestors.map(a => a.id));
+      const descendantIds = new Set(descendants.map(d => d.id));
+      const siblingIds = new Set(siblings.map(s => s.id));
+      const uncleIds = new Set(uncles.map(u => u.id));
+      const cousinIds = new Set(cousins.map(c => c.id));
+      const spouseIds = new Set(person.spouse_ids || []);
+
+      const connectedIds = new Set([
+        personId,
+        ...ancestorIds,
+        ...descendantIds,
+        ...siblingIds,
+        ...uncleIds,
+        ...cousinIds,
+        ...spouseIds
+      ]);
+
+      const allCards = document.querySelectorAll('.tree-card');
+      allCards.forEach(card => {
+        const rawId = card.id.replace('master_card_', '').replace('card_', '');
+        card.classList.remove('neural-active', 'neural-ancestor', 'neural-sibling', 'neural-uncle', 'neural-cousin', 'neural-descendant', 'neural-dimmed');
+
+        if (rawId === personId) {
+          card.classList.add('neural-active');
+        } else if (ancestorIds.has(rawId)) {
+          card.classList.add('neural-ancestor');
+        } else if (siblingIds.has(rawId)) {
+          card.classList.add('neural-sibling');
+        } else if (uncleIds.has(rawId)) {
+          card.classList.add('neural-uncle');
+        } else if (cousinIds.has(rawId)) {
+          card.classList.add('neural-cousin');
+        } else if (descendantIds.has(rawId)) {
+          card.classList.add('neural-descendant');
+        } else {
+          card.classList.add('neural-dimmed');
+        }
+      });
+
+      const lines = svgConnectors?.querySelectorAll('line, path') || [];
+      lines.forEach(l => {
+        const from = l.getAttribute('data-from');
+        const to = l.getAttribute('data-to');
+        if ((from && connectedIds.has(from)) || (to && connectedIds.has(to))) {
+          l.classList.add('neural-pulse-line');
+        } else {
+          l.classList.remove('neural-pulse-line');
+        }
+      });
+
+      // Update HUD
+      const hud = document.getElementById('neuralKinshipHUD');
+      if (hud) {
+        document.getElementById('hudPersonName').textContent = person.short_name || person.name;
+        document.getElementById('hudPersonBranch').textContent = `${person.branch || person.sub_branch || ''} • ${person.generation || ''}`;
+        document.getElementById('hudAncestorsCount').textContent = ancestors.length;
+        document.getElementById('hudSiblingsCount').textContent = siblings.length;
+        document.getElementById('hudUnclesCount').textContent = uncles.length;
+        document.getElementById('hudCousinsCount').textContent = cousins.length;
+        document.getElementById('hudDescendantsCount').textContent = descendants.length;
+
+        document.getElementById('hudOpenDrawerBtn').onclick = () => {
+          populatePersonDrawer(person);
+          document.getElementById('personDrawer').classList.remove('translate-x-full');
+          document.getElementById('drawerBackdrop').classList.remove('hidden');
+        };
+
+        hud.classList.remove('hidden');
+      }
+    }
+
+    function clearNeuralKinship() {
+      const allCards = document.querySelectorAll('.tree-card');
+      allCards.forEach(card => {
+        card.classList.remove('neural-active', 'neural-ancestor', 'neural-sibling', 'neural-uncle', 'neural-cousin', 'neural-descendant', 'neural-dimmed');
+      });
+      const lines = svgConnectors?.querySelectorAll('.neural-pulse-line') || [];
+      lines.forEach(l => l.classList.remove('neural-pulse-line'));
+      const hud = document.getElementById('neuralKinshipHUD');
+      if (hud) hud.classList.add('hidden');
+    }
+
+    // Dismiss neural highlight on background click
+    viewport.addEventListener('click', (e) => {
+      if (!e.target.closest('.tree-card') && !e.target.closest('#neuralKinshipHUD') && !e.target.closest('button')) {
+        clearNeuralKinship();
+      }
+    });
+
+    function getTargetViewForPerson(person) {
+      if (!person) return 'master';
+      const pid = person.id || '';
+      if (pid.startsWith('ANC_ADAM') || pid.startsWith('ANC_SHEETH') || pid.startsWith('ANC_IDRIS') || 
+          pid.startsWith('ANC_NUH') || pid.startsWith('ANC_SAM') || pid.startsWith('ANC_HUD') || 
+          pid.startsWith('ANC_IBRAHIM') || pid.startsWith('ANC_ISMAIL') || pid.startsWith('ANC_ADNAN') || 
+          pid.startsWith('ANC_MAADD') || pid.startsWith('ANC_NIZAR') || pid.startsWith('ANC_RABIAH') || 
+          pid.startsWith('ANC_TAGHLIB') || pid.startsWith('ANC_KHAMIS_ROOT')) {
+        return 'master';
+      }
+      if (pid.startsWith('k34_') || (person.chart || '').toUpperCase() === 'K34') {
+        return 'k34';
+      }
+      const sub = (person.sub_branch || '').toUpperCase().trim();
+      const chart = (person.chart || '').toUpperCase().trim();
+      const branch = (person.branch || '').trim();
+
+      if (sub === 'K01-K15' || chart === 'K01-K15' || sub.includes('K01') || chart.includes('K01') || branch.includes('علي بن أحمد')) return 'K01-K15';
+      if (sub === 'K16-K33' || chart === 'K16-K33' || sub.includes('K16') || chart.includes('K16') || branch.includes('حسن وعباس')) return 'K16-K33';
+      if (sub === 'K35-K46' || chart === 'K35-K46' || sub.includes('K35') || chart.includes('K35') || branch.includes('عبد الحميد')) return 'K35-K46';
+      if (sub === 'S/H' || chart === 'S/H' || branch.includes('سعودية') || branch.includes('أحساء') || branch.includes('قطيف')) return 'S/H';
+      if (sub === 'Q' || chart === 'Q' || branch.includes('عراق') || branch.includes('بصرة') || branch.includes('نجف') || branch.includes('قرية')) return 'Q';
+      if (sub === 'D' || chart === 'D' || branch.includes('داغر') || branch.includes('عبد النبي')) return 'D';
+      if (sub === 'M' || chart === 'M' || branch.includes('الكايد') || branch.includes('مدحوب')) return 'M';
+      return 'master';
+    }
+
+    /* ==========================================================================
+       9. VIEW 5: MASTER REGISTRY TABLE (HIGH-PERFORMANCE PRE-INDEXED ENGINE)
        ========================================================================== */
     let registryCurrentPage = 1;
     let registryPageSize = 50;
     let registrySearchTerm = '';
     let registrySelectedBranch = 'ALL';
+    let cachedRegistryList = null;
+    let registryDebounceTimer = null;
 
     function getCombinedRegistryList() {
+      if (cachedRegistryList) return cachedRegistryList;
       const list = [];
       const seenIds = new Set();
       
-      if (window.FAMILY_DATA?.k34_nodes) {
-        window.FAMILY_DATA.k34_nodes.forEach(n => {
-          if (!seenIds.has(n.id)) {
-            seenIds.add(n.id);
-            list.push({ ...n, _source: 'k34' });
-          }
-        });
-      }
-      if (window.FAMILY_DATA?.individuals) {
-        window.FAMILY_DATA.individuals.forEach(i => {
-          if (!seenIds.has(i.id)) {
-            seenIds.add(i.id);
-            list.push({ ...i, _source: 'registry' });
-          }
-        });
-      }
+      const k34 = window.FAMILY_DATA?.k34_nodes || [];
+      const inds = window.FAMILY_DATA?.individuals || [];
+      const classical = window.FAMILY_DATA?.classical_ancestors || [];
+
+      k34.forEach(n => {
+        if (!seenIds.has(n.id)) {
+          seenIds.add(n.id);
+          const item = { ...n, _source: 'k34' };
+          item._targetView = getTargetViewForPerson(item);
+          item._searchStr = normalizeArabic([
+            item.short_name || '',
+            item.name || item.title || '',
+            item.mother || '',
+            item.spouse || '',
+            item.sub_branch || '',
+            item.chart || '',
+            item.branch || '',
+            item.generation || ''
+          ].join(' '));
+          list.push(item);
+        }
+      });
+
+      inds.forEach(i => {
+        if (!seenIds.has(i.id)) {
+          seenIds.add(i.id);
+          const item = { ...i, _source: 'registry' };
+          item._targetView = getTargetViewForPerson(item);
+          item._searchStr = normalizeArabic([
+            item.short_name || '',
+            item.name || item.title || '',
+            item.mother || '',
+            item.spouse || '',
+            item.sub_branch || '',
+            item.chart || '',
+            item.branch || '',
+            item.generation || ''
+          ].join(' '));
+          list.push(item);
+        }
+      });
+
+      classical.forEach(a => {
+        if (!seenIds.has(a.id)) {
+          seenIds.add(a.id);
+          const item = { ...a, _source: 'classical' };
+          item._targetView = 'classical';
+          item._searchStr = normalizeArabic([
+            item.name || '',
+            item.title || '',
+            item.era || '',
+            item.notes || ''
+          ].join(' '));
+          list.push(item);
+        }
+      });
+
+      cachedRegistryList = list;
       return list;
     }
 
     function onRegistrySearchInput() {
-      registrySearchTerm = (document.getElementById('registryFilterInput')?.value || '').trim();
-      registryCurrentPage = 1;
-      renderRegistryTable();
+      if (registryDebounceTimer) clearTimeout(registryDebounceTimer);
+      registryDebounceTimer = setTimeout(() => {
+        registrySearchTerm = (document.getElementById('registryFilterInput')?.value || '').trim();
+        registryCurrentPage = 1;
+        renderRegistryTable();
+      }, 120);
     }
 
     function onRegistryBranchChange() {
@@ -2593,6 +2870,8 @@
     function goToRegistryPage(p) {
       registryCurrentPage = p;
       renderRegistryTable();
+      const tableTop = document.getElementById('registryViewOverlay');
+      if (tableTop) tableTop.scrollTop = 0;
     }
 
     function renderRegistryTable() {
@@ -2604,18 +2883,25 @@
 
       // 1. Branch filter
       if (registrySelectedBranch !== 'ALL') {
+        const sel = registrySelectedBranch.toUpperCase();
         filtered = filtered.filter(i => {
           const sub = (i.sub_branch || '').toUpperCase();
           const chart = (i.chart || '').toUpperCase();
           const branch = (i.branch || '');
-          const sel = registrySelectedBranch.toUpperCase();
-          return sub.includes(sel) || chart.includes(sel) || branch.includes(registrySelectedBranch);
+          return sub.includes(sel) || chart.includes(sel) || branch.includes(registrySelectedBranch) || i._targetView === sel;
         });
       }
 
-      // 2. Search query filter using Arabic genealogical normalization
+      // 2. Ultra-fast pre-indexed token search (executes in < 1ms)
       if (registrySearchTerm) {
-        filtered = filtered.filter(i => matchesGenealogicalRecord(i, registrySearchTerm).match);
+        const normQ = normalizeArabic(registrySearchTerm);
+        const tokens = normQ.split(' ').filter(Boolean);
+        const nonStop = tokens.filter(t => t !== 'ال' && t !== 'بن' && t !== 'ابن' && t !== 'بنت');
+        const qTokens = nonStop.length > 0 ? nonStop : tokens;
+
+        filtered = filtered.filter(i => {
+          return qTokens.every(tok => i._searchStr.includes(tok));
+        });
       }
 
       // Update total badge
@@ -2631,13 +2917,7 @@
       const pageItems = filtered.slice(startIdx, endIdx);
 
       const tbody = document.getElementById('registryTableBody');
-      tbody.innerHTML = '';
-
-      pageItems.forEach((ind, idx) => {
-        const tr = document.createElement('tr');
-        tr.className = 'border-b transition-colors hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer';
-        tr.style.borderColor = 'var(--card-border)';
-
+      const rowsHtml = pageItems.map((ind, idx) => {
         const isLiving = ind.status_type === 'living';
         const statusBadge = `
           <span class="inline-flex items-center gap-1 font-bold ${isLiving ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'}">
@@ -2649,30 +2929,31 @@
         const motherText = (ind.mother && ind.mother !== 'غير مسجل') ? ind.mother : '—';
         const spouseText = (ind.spouse && ind.spouse !== 'غير مسجل') ? ind.spouse : '—';
 
-        tr.innerHTML = `
-          <td class="py-2.5 px-3 font-mono font-bold text-slate-400 text-center">${startIdx + idx + 1}</td>
-          <td class="py-2.5 px-3 font-bold text-amber-700 dark:text-amber-400 font-arabic">${ind.short_name}</td>
-          <td class="py-2.5 px-3 font-arabic font-medium leading-relaxed">${ind.name || '—'}</td>
-          <td class="py-2.5 px-3" style="color: var(--text-muted);">${motherText}</td>
-          <td class="py-2.5 px-3 font-semibold">${spouseText}</td>
-          <td class="py-2.5 px-3">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono border" style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--gold-accent);">
-              ${ind.sub_branch || ind.chart || 'K34'}
-            </span>
-          </td>
-          <td class="py-2.5 px-3 font-medium text-[11px]" style="color: var(--text-muted);">${ind.generation || 'الجيل الثامن'}</td>
-          <td class="py-2.5 px-3">${statusBadge}</td>
-          <td class="py-2.5 px-3 text-center">
-            <button onclick="event.stopPropagation(); flyToPerson('${ind.id}', { preferredSource: '${ind._source}' })" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all hover:scale-105 flex items-center gap-1.5 mx-auto shadow-sm cursor-pointer" style="background: var(--canvas-bg); border-color: var(--gold-accent); color: var(--gold-accent);" title="تحديد الموقع والانتقال للمشجرة">
-              <span>🎯</span>
-              <span>عرض في المشجرة</span>
-            </button>
-          </td>
+        return `
+          <tr class="border-b transition-colors hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer" style="border-color: var(--card-border);" onclick="flyToPerson('${ind.id}', { preferredSource: '${ind._source}' })">
+            <td class="py-2.5 px-3 font-mono font-bold text-slate-400 text-center">${startIdx + idx + 1}</td>
+            <td class="py-2.5 px-3 font-bold text-amber-700 dark:text-amber-400 font-arabic">${ind.short_name}</td>
+            <td class="py-2.5 px-3 font-arabic font-medium leading-relaxed">${ind.name || '—'}</td>
+            <td class="py-2.5 px-3" style="color: var(--text-muted);">${motherText}</td>
+            <td class="py-2.5 px-3 font-semibold">${spouseText}</td>
+            <td class="py-2.5 px-3">
+              <span class="px-2 py-0.5 rounded text-[10px] font-mono border" style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--gold-accent);">
+                ${ind.sub_branch || ind.chart || 'K34'}
+              </span>
+            </td>
+            <td class="py-2.5 px-3 font-medium text-[11px]" style="color: var(--text-muted);">${ind.generation || 'الجيل الثامن'}</td>
+            <td class="py-2.5 px-3">${statusBadge}</td>
+            <td class="py-2.5 px-3 text-center">
+              <button onclick="event.stopPropagation(); flyToPerson('${ind.id}', { preferredSource: '${ind._source}' })" class="px-2.5 py-1.5 rounded-lg text-[11px] font-bold border transition-all hover:scale-105 flex items-center gap-1.5 mx-auto shadow-sm cursor-pointer" style="background: var(--canvas-bg); border-color: var(--gold-accent); color: var(--gold-accent);" title="تحديد الموقع والانتقال للمشجرة">
+                <span>🎯</span>
+                <span>عرض في المشجرة</span>
+              </button>
+            </td>
+          </tr>
         `;
-
-        tr.onclick = () => flyToPerson(ind.id, { preferredSource: ind._source });
-        tbody.appendChild(tr);
       });
+
+      tbody.innerHTML = rowsHtml.join('');
 
       // 4. Render Pagination Controls
       const infoEl = document.getElementById('registryPaginationInfo');
@@ -2752,13 +3033,25 @@
        ========================================================================== */
     function findPersonById(personId) {
       if (!personId || !window.FAMILY_DATA) return null;
-      let p = window.FAMILY_DATA.k34_nodes?.find(n => n.id === personId);
-      if (p) return { ...p, _source: 'k34' };
-      p = window.FAMILY_DATA.individuals?.find(n => n.id === personId);
-      if (p) return { ...p, _source: 'registry' };
-      p = window.FAMILY_DATA.classical_ancestors?.find(n => n.id === personId);
-      if (p) return { ...p, _source: 'classical' };
-      return null;
+      if (!window._personMap) {
+        window._personMap = new Map();
+        (window.FAMILY_DATA.k34_nodes || []).forEach(n => {
+          const item = { ...n, _source: 'k34' };
+          item._targetView = getTargetViewForPerson(item);
+          window._personMap.set(n.id, item);
+        });
+        (window.FAMILY_DATA.individuals || []).forEach(i => {
+          const item = { ...i, _source: 'registry' };
+          item._targetView = getTargetViewForPerson(item);
+          window._personMap.set(i.id, item);
+        });
+        (window.FAMILY_DATA.classical_ancestors || []).forEach(a => {
+          const item = { ...a, _source: 'classical' };
+          item._targetView = 'classical';
+          window._personMap.set(a.id, item);
+        });
+      }
+      return window._personMap.get(personId) || null;
     }
 
     function getPersonKinship(person) {
@@ -2966,11 +3259,13 @@
 
       // Drawer Center Button Action
       document.getElementById('drawerCenterBtn').onclick = () => {
+        closePersonDrawer();
         flyToPerson(person.id, { openDrawer: false });
       };
     }
 
     function selectPerson(personId, source = 'k34', options = {}) {
+      if (touchMovedSignificantly) return;
       flyToPerson(personId, { ...options, preferredSource: source });
     }
 
@@ -2984,43 +3279,38 @@
       // 1. Hide registry overlay if currently open
       document.getElementById('registryViewOverlay').classList.add('hidden');
 
-      // 2. View routing: Ensure correct view is loaded for node
-      const source = preferredSource || person._source;
-      let targetView = activeView;
+      // 2. View routing: Exact target view lookup
+      const targetView = person._targetView || getTargetViewForPerson(person);
+      const isMobile = window.innerWidth <= 768;
 
-      if (activeView === 'registry') {
-        targetView = (source === 'k34') ? 'k34' : 'master';
-      } else if (source === 'k34' && activeView !== 'k34' && activeView !== 'master') {
-        targetView = 'k34';
-      } else if (source === 'classical' && activeView !== 'classical' && activeView !== 'master') {
-        targetView = 'master';
-      } else if (source === 'registry') {
-        if (activeView === 'k34' || activeView === 'classical') {
-          targetView = 'master';
+      // 3. On mobile, ensure the drawer is closed so the screen is not blocked!
+      if (isMobile) {
+        closePersonDrawer();
+      } else {
+        if (openDrawer) {
+          if (targetView === 'classical' && person.era) {
+            showClassicalModal(person);
+          } else {
+            populatePersonDrawer(person);
+            document.getElementById('personDrawer').classList.remove('translate-x-full');
+            document.getElementById('drawerBackdrop').classList.remove('hidden');
+          }
+        } else {
+          closePersonDrawer();
         }
       }
 
+      // 4. Switch view if needed (pass skipFit = true to prevent view reset)
       const viewSwitched = (targetView !== activeView);
       if (viewSwitched) {
-        switchView(targetView);
+        switchView(targetView, true);
       }
 
-      // 3. Open Drawer or Modal
-      if (openDrawer) {
-        if (source === 'classical') {
-          showClassicalModal(person);
-        } else {
-          populatePersonDrawer(person);
-          document.getElementById('personDrawer').classList.remove('translate-x-full');
-          document.getElementById('drawerBackdrop').classList.remove('hidden');
-        }
-      }
-
-      // 4. Center Camera on Person's Tree Card with Pulse Highlight & Neural Kinship Trace
-      const delay = viewSwitched ? 150 : 30;
+      // 5. Center Camera on Person's Tree Card with Pulse Highlight & Neural Kinship Trace
+      const delay = viewSwitched ? 160 : 40;
       setTimeout(() => {
         const cardId = `card_${person.id}`;
-        centerOnCardElement(cardId, person.short_name);
+        centerOnCardElement(cardId, person.short_name || person.name);
         traceNeuralKinship(person.id);
       }, delay);
     }
@@ -3033,17 +3323,25 @@
       if (!card && cardId.startsWith('master_card_')) {
         card = document.getElementById(cardId.replace('master_', ''));
       }
+      if (!card) {
+        const rawId = cardId.replace('card_', '');
+        card = document.querySelector(`.tree-card[id$="${rawId}"]`);
+      }
       if (!card) return;
+
+      // Ensure card is visible even if previously offscreen
+      card.style.display = 'flex';
 
       const rect = viewport.getBoundingClientRect();
       const cx = card.offsetLeft + card.offsetWidth / 2;
       const cy = card.offsetTop + card.offsetHeight / 2;
 
-      currentScale = Math.max(currentScale, 0.95);
+      const isMobile = window.innerWidth <= 768;
+      currentScale = isMobile ? 1.05 : Math.max(currentScale, 0.95);
 
-      // Account for drawer offset on desktop (>640px)
+      // Account for drawer offset on desktop (>768px)
       const isDrawerOpen = !document.getElementById('personDrawer').classList.contains('translate-x-full');
-      const drawerOffset = (isDrawerOpen && window.innerWidth > 640) ? 220 : 0;
+      const drawerOffset = (!isMobile && isDrawerOpen) ? 220 : 0;
 
       translateX = (rect.width / 2) - drawerOffset - (cx * currentScale);
       translateY = (rect.height / 2) - (cy * currentScale);
@@ -3052,6 +3350,9 @@
 
       document.querySelectorAll('.tree-card.active-selected').forEach(c => c.classList.remove('active-selected'));
       card.classList.add('active-selected');
+
+      // Schedule post-pan culling
+      scheduleViewportCulling(450);
 
       if (name) {
         showToast(`تم تحديد موقع ${name}`, '🎯');
@@ -3256,33 +3557,39 @@
     let activeDropdownIndex = -1;
     let currentSearchResults = [];
 
+    let nameSearchDebounceTimer = null;
     searchInput.addEventListener('input', (e) => {
-      const q = e.target.value.trim();
-      if (q.length < 2) {
-        searchDropdown.classList.add('hidden');
-        searchDropdown.innerHTML = '';
-        currentSearchResults = [];
-        activeDropdownIndex = -1;
-        return;
-      }
-
-      const allItems = [
-        ...(window.FAMILY_DATA?.k34_nodes || []).map(n => ({ ...n, _source: 'k34' })),
-        ...(window.FAMILY_DATA?.individuals || []).map(i => ({ ...i, _source: 'registry' })),
-        ...(window.FAMILY_DATA?.classical_ancestors || []).map(a => ({ ...a, _source: 'classical' }))
-      ];
-
-      const matched = [];
-      for (const item of allItems) {
-        const res = matchesGenealogicalRecord(item, q);
-        if (res.match) {
-          matched.push({ ...item, _score: res.score });
+      clearTimeout(nameSearchDebounceTimer);
+      nameSearchDebounceTimer = setTimeout(() => {
+        const q = e.target.value.trim();
+        if (q.length < 2) {
+          searchDropdown.classList.add('hidden');
+          searchDropdown.innerHTML = '';
+          currentSearchResults = [];
+          activeDropdownIndex = -1;
+          return;
         }
-      }
 
-      matched.sort((a, b) => b._score - a._score);
-      currentSearchResults = matched.slice(0, 15);
-      activeDropdownIndex = -1;
+        const allItems = getCombinedRegistryList();
+        const normQ = normalizeArabic(q);
+        const tokens = normQ.split(' ').filter(Boolean);
+        const nonStop = tokens.filter(t => t !== 'ال' && t !== 'بن' && t !== 'ابن' && t !== 'بنت');
+        const qTokens = nonStop.length > 0 ? nonStop : tokens;
+
+        const matched = [];
+        for (let i = 0; i < allItems.length; i++) {
+          const item = allItems[i];
+          if (qTokens.every(tok => item._searchStr.includes(tok))) {
+            let score = 50;
+            if (item.short_name && normalizeArabic(item.short_name).includes(normQ)) score += 30;
+            if (item.name && normalizeArabic(item.name).includes(normQ)) score += 20;
+            matched.push({ ...item, _score: score });
+          }
+        }
+
+        matched.sort((a, b) => b._score - a._score);
+        currentSearchResults = matched.slice(0, 15);
+        activeDropdownIndex = -1;
 
       if (currentSearchResults.length === 0) {
         searchDropdown.innerHTML = `
@@ -3334,7 +3641,8 @@
         searchDropdown.appendChild(itemEl);
       });
 
-      searchDropdown.classList.remove('hidden');
+        searchDropdown.classList.remove('hidden');
+      }, 120);
     });
 
     function highlightDropdownItem(index) {
@@ -3394,24 +3702,24 @@
     /* ==========================================================================
        11. NAVIGATION & VIEW SWITCHING
        ========================================================================== */
-    function switchView(viewKey) {
+    function switchView(viewKey, skipFit = false) {
       activeView = viewKey;
       document.getElementById('chartViewSelector').value = viewKey;
 
       if (viewKey === 'k34') {
         renderChartK34();
-        fitToScreen();
+        if (!skipFit) fitToScreen();
       } else if (viewKey === 'master') {
         renderMasterTreeToAdam();
-        fitToScreen();
+        if (!skipFit) fitToScreen();
       } else if (viewKey === 'classical') {
         renderClassicalView();
-        fitToScreen();
+        if (!skipFit) fitToScreen();
       } else if (viewKey === 'registry') {
         renderRegistryTable();
       } else {
         renderSubBranchView(viewKey);
-        fitToScreen();
+        if (!skipFit) fitToScreen();
       }
     }
 
@@ -3688,6 +3996,8 @@
 
       // Merge into live data
       mergeCustomMembersIntoDataset();
+      window._personMap = null;
+      cachedRegistryList = null;
 
       closeAddMemberModal();
       showToast(`تمت إضافة "${shortName}" إلى المشجرة بنجاح 🌿`, '✨');
@@ -3713,6 +4023,8 @@
       if (window.FAMILY_DATA?.individuals) {
         window.FAMILY_DATA.individuals = window.FAMILY_DATA.individuals.filter(i => i.id !== personId);
       }
+      window._personMap = null;
+      cachedRegistryList = null;
 
       closePersonDrawer();
       showToast('تم حذف الفرد بنجاح من المشجرة 🗑️', '✨');
