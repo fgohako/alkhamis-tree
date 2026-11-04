@@ -666,12 +666,15 @@
       <!-- SVG Connecting Lines & Organic Tree Art Layer -->
       <svg id="treeSvg" class="absolute top-0 left-0 pointer-events-none" style="width: 9800px; height: 22000px;">
         <defs>
-          <!-- Arrow Markers -->
+          <!-- High-Contrast Crisp Arrow Markers -->
           <marker id="arrow-blue-down" viewBox="0 0 10 10" refX="5" refY="6" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="#0284c7" />
           </marker>
           <marker id="arrow-gold-down" viewBox="0 0 10 10" refX="5" refY="6" markerWidth="6" markerHeight="6" orient="auto">
-            <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="#b8860b" />
+            <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="#f59e0b" />
+          </marker>
+          <marker id="arrow-bronze-down" viewBox="0 0 10 10" refX="5" refY="6" markerWidth="6" markerHeight="6" orient="auto">
+            <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="#78350f" />
           </marker>
           <marker id="arrow-dashed-down" viewBox="0 0 10 10" refX="5" refY="6" markerWidth="6" markerHeight="6" orient="auto">
             <path d="M 1.5 0 L 5 8 L 8.5 0 z" fill="#64748b" />
@@ -1014,12 +1017,14 @@
     }
 
     /* ==========================================================================
-       2. ZERO-LAG PAN AND ZOOM ENGINE (60 FPS GPU LAYER)
+       2. ZERO-LAG PAN AND ZOOM ENGINE (60 FPS GPU ACCELERATED LAYER)
        ========================================================================== */
     let cullingTimer = null;
-    function scheduleViewportCulling() {
-      if (cullingTimer) cancelAnimationFrame(cullingTimer);
-      cullingTimer = requestAnimationFrame(cullOffscreenCards);
+    function scheduleViewportCulling(delay = 180) {
+      if (cullingTimer) clearTimeout(cullingTimer);
+      cullingTimer = setTimeout(() => {
+        requestAnimationFrame(cullOffscreenCards);
+      }, delay);
     }
 
     function cullOffscreenCards() {
@@ -1029,10 +1034,10 @@
       const vW = vp.clientWidth || window.innerWidth;
       const vH = vp.clientHeight || window.innerHeight;
       const scale = currentScale || 1;
-      const minX = -translateX / scale - 400;
-      const minY = -translateY / scale - 400;
-      const maxX = minX + (vW / scale) + 800;
-      const maxY = minY + (vH / scale) + 800;
+      const minX = -translateX / scale - 500;
+      const minY = -translateY / scale - 500;
+      const maxX = minX + (vW / scale) + 1000;
+      const maxY = minY + (vH / scale) + 1000;
 
       const cards = window.ALL_TAPESTRY_CARDS;
       const len = cards.length;
@@ -1048,15 +1053,25 @@
       }
     }
 
+    let isTransformPending = false;
     function updateTransform(animate = false) {
       if (animate) {
-        canvasPlane.style.transition = 'transform 0.4s cubic-bezier(0.16, 1, 0.3, 1)';
-        setTimeout(() => { canvasPlane.style.transition = 'none'; }, 420);
+        canvasPlane.style.transition = 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1)';
+        setTimeout(() => { canvasPlane.style.transition = 'none'; }, 380);
       } else {
         canvasPlane.style.transition = 'none';
       }
       canvasPlane.style.transform = `translate3d(${translateX}px, ${translateY}px, 0px) scale(${currentScale})`;
-      scheduleViewportCulling();
+    }
+
+    function requestTransformUpdate() {
+      if (!isTransformPending) {
+        requestAnimationFrame(() => {
+          canvasPlane.style.transform = `translate3d(${translateX}px, ${translateY}px, 0px) scale(${currentScale})`;
+          isTransformPending = false;
+        });
+        isTransformPending = true;
+      }
     }
 
     // --- Desktop Mouse Wheel Zoom (Anchored to Cursor) ---
@@ -1070,13 +1085,14 @@
       const worldY = (mouseY - translateY) / currentScale;
 
       const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
-      const newScale = Math.min(Math.max(currentScale * zoomFactor, 0.12), 3.0);
+      const newScale = Math.min(Math.max(currentScale * zoomFactor, 0.10), 3.0);
 
       translateX = mouseX - worldX * newScale;
       translateY = mouseY - worldY * newScale;
       currentScale = newScale;
 
-      updateTransform(false);
+      requestTransformUpdate();
+      scheduleViewportCulling(150);
       hideGestureHint();
     }, { passive: false });
 
@@ -1095,7 +1111,7 @@
       if (!isDragging) return;
       translateX = e.clientX - startX;
       translateY = e.clientY - startY;
-      updateTransform(false);
+      requestTransformUpdate();
     });
 
     window.addEventListener('mouseup', () => {
@@ -1103,10 +1119,11 @@
         isDragging = false;
         viewport.style.cursor = 'grab';
         document.body.classList.remove('canvas-interacting');
+        scheduleViewportCulling(100);
       }
     });
 
-    // --- Mobile Touch Gestures (Single Pan & Two-Finger Pinch-to-Zoom) ---
+    // --- Mobile Touch Gestures (Hardware Accelerated Single Pan & Two-Finger Pinch) ---
     let initialPinchDist = 0;
     let initialPinchScale = 1.0;
     let pinchMidX = 0;
@@ -1146,12 +1163,12 @@
       if (isDragging && e.touches.length === 1) {
         translateX = e.touches[0].clientX - startX;
         translateY = e.touches[0].clientY - startY;
-        updateTransform(false);
+        requestTransformUpdate();
       } else if (isPinching && e.touches.length === 2) {
         const currentDist = getTouchDistance(e.touches[0], e.touches[1]);
         if (initialPinchDist > 0) {
           const ratio = currentDist / initialPinchDist;
-          const newScale = Math.min(Math.max(initialPinchScale * ratio, 0.12), 3.0);
+          const newScale = Math.min(Math.max(initialPinchScale * ratio, 0.10), 3.0);
 
           const worldX = (pinchMidX - translateX) / currentScale;
           const worldY = (pinchMidY - translateY) / currentScale;
@@ -1160,7 +1177,7 @@
           translateY = pinchMidY - worldY * newScale;
           currentScale = newScale;
 
-          updateTransform(false);
+          requestTransformUpdate();
         }
       }
     }, { passive: false });
@@ -1170,6 +1187,7 @@
         isDragging = false;
         isPinching = false;
         document.body.classList.remove('canvas-interacting');
+        scheduleViewportCulling(120);
       } else if (e.touches.length === 1) {
         isPinching = false;
         isDragging = true;
@@ -1194,17 +1212,17 @@
       const worldX = (mouseX - translateX) / currentScale;
       const worldY = (mouseY - translateY) / currentScale;
 
-      const newScale = Math.min(Math.max(currentScale + delta, 0.15), 3.0);
+      const newScale = Math.min(Math.max(currentScale + delta, 0.12), 3.0);
       translateX = mouseX - worldX * newScale;
       translateY = mouseY - worldY * newScale;
       currentScale = newScale;
 
       updateTransform(true);
+      scheduleViewportCulling(150);
     }
 
     function resetZoom() {
-      currentScale = 1.0;
-      updateTransform(true);
+      fitToScreen();
     }
 
     function setCanvasDimensions(w, h) {
@@ -1221,30 +1239,29 @@
 
     function fitToScreen() {
       const rect = viewport.getBoundingClientRect();
+      const isMobile = window.innerWidth < 768;
+
       if (activeView === 'k34') {
-        const contentW = 2600;
-        const contentH = 950;
-        const centerX = 1310;
-        const centerY = 500;
-        const scaleX = (rect.width - 60) / contentW;
-        const scaleY = (rect.height - 90) / contentH;
-        currentScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.35), 0.88);
+        const contentW = 3950;
+        const contentH = 1150;
+        const centerX = 1975;
+        const centerY = 550;
+        const scaleX = (rect.width - 40) / contentW;
+        const scaleY = (rect.height - 80) / contentH;
+        currentScale = Math.min(Math.max(Math.min(scaleX, scaleY), isMobile ? 0.28 : 0.45), 1.0);
         translateX = (rect.width / 2) - (centerX * currentScale);
-        translateY = (rect.height / 2) - (centerY * currentScale);
+        translateY = Math.max(30, (rect.height / 2) - (centerY * currentScale));
         updateTransform(true);
       } else if (activeView === 'master') {
-        const centerX = 3200;
-        const centerY = 1500;
-        const scaleX = (rect.width - 60) / 6400;
-        const scaleY = (rect.height - 90) / 4000;
-        currentScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.22), 0.75);
+        const centerX = 2600;
+        const scaleX = (rect.width - 40) / 5200;
+        currentScale = Math.min(Math.max(scaleX, isMobile ? 0.16 : 0.26), 0.85);
         translateX = (rect.width / 2) - (centerX * currentScale);
-        translateY = Math.max(20, (rect.height / 2) - (centerY * currentScale));
+        translateY = 40;
         updateTransform(true);
       } else if (activeView === 'classical') {
         const centerX = 1200;
-        const centerY = 400;
-        currentScale = 0.92;
+        currentScale = isMobile ? 0.65 : 0.92;
         translateX = (rect.width / 2) - (centerX * currentScale);
         translateY = 40;
         updateTransform(true);
@@ -1257,31 +1274,32 @@
           cards.forEach(c => {
             const x = c.offsetLeft;
             const y = c.offsetTop;
-            const w = c.offsetWidth;
-            const h = c.offsetHeight;
+            const w = c.offsetWidth || 190;
+            const h = c.offsetHeight || 48;
             if (x < minX) minX = x;
             if (x + w > maxX) maxX = x + w;
             if (y < minY) minY = y;
             if (y + h > maxY) maxY = y + h;
           });
-          const contentW = Math.max(maxX - minX + 60, 400);
-          const contentH = Math.max(maxY - minY + 60, 300);
+          const contentW = Math.max(maxX - minX + 120, 600);
+          const contentH = Math.max(maxY - minY + 120, 600);
           const cx = (minX + maxX) / 2;
           const cy = (minY + maxY) / 2;
           const scaleX = (rect.width - 60) / contentW;
           const scaleY = (rect.height - 100) / contentH;
-          currentScale = Math.min(scaleX, scaleY, 1.05);
+          currentScale = Math.min(Math.max(Math.min(scaleX, scaleY), 0.08), 0.95);
           translateX = (rect.width / 2) - (cx * currentScale);
-          translateY = Math.max(40, (rect.height / 2) - (cy * currentScale));
+          translateY = (rect.height / 2) - (cy * currentScale);
           updateTransform(true);
         }
       }
+      scheduleViewportCulling(200);
     }
 
     /* ==========================================================================
        3. ORGANIC ILLUSTRATED TREE BACKGROUND ART GENERATOR (IMAGE 2 REPLICA)
        ========================================================================== */
-    function generateOrganicTreeBackground(theme, w, h, centerX, trunkBaseY, boughs, showCartouche = false) {
+    function generateOrganicTreeBackground(theme, w, h, centerX, trunkBaseY, boughs, showCartouche = false, showTrunk = false) {
       const isDark = theme === 'dark';
       const goldTrim = isDark ? '#f59e0b' : '#c5a059';
       const goldDim = isDark ? '#b45309' : '#dfc187';
@@ -1344,7 +1362,9 @@
         `;
       });
 
-      // 4. Central Majestic Tree Trunk & Root System (Image 2 Replica)
+      // 4. Central Majestic Tree Trunk & Root System (Only drawn on Grand Master Tree)
+      if (showTrunk) {
+// 4. Central Majestic Tree Trunk & Root System (Image 2 Replica)
       const isTall = trunkBaseY > 1500;
       const trunkTopY = isTall ? 260 : Math.max(trunkBaseY - 450, 60);
 
@@ -1398,7 +1418,9 @@
         `;
       }
 
-      // 5. Sweeping Symmetrical Organic-Neural Boughs
+      
+      }
+// 5. Sweeping Symmetrical Organic-Neural Boughs
       boughs.forEach(b => {
         const isLeft = b.targetX < centerX;
         const dx = Math.abs(b.targetX - centerX);
@@ -1481,7 +1503,7 @@
     }
 
     /* ==========================================================================
-       4. VIEW 1: MASTER GRAND TREE TO ADAM (UNIFIED GRAND PANORAMIC TAPESTRY)
+       4. VIEW 1: MASTER GRAND TREE TO ADAM (TALL PORTRAIT TAPESTRY)
        ========================================================================== */
     function renderMasterTreeToAdam() {
       if (!window.FAMILY_DATA || !window.FAMILY_DATA.individuals) {
@@ -1490,65 +1512,62 @@
       }
 
       document.getElementById('registryViewOverlay').classList.add('hidden');
-      document.getElementById('chartHeaderTitle').textContent = 'المشجرة البانورامية الكبرى الجامعة لكافة الأفراد (تحفة الأنساب الملكية — ٢٦٠٠ فرد بالاسم)';
-      document.getElementById('chartHeaderSubtitle').textContent = 'الهيكل الشجري العضوي الجامع: تفرع كافة الأنساب والأسر بالاسم بنظام الشبكة العصبية وحافلات التوزيع الأسرية 🌿';
+      document.getElementById('chartHeaderTitle').textContent = 'المشجرة الكبرى الشاملة الجامعة إلى آدم عليه السلام (تحفة الأنساب الملكية)';
+      document.getElementById('chartHeaderSubtitle').textContent = 'الهيكل الشجري العضوي الجامع: تفرع الأنساب والأعمام وأبناء العمومة والأحفاد بنظام الشبكة العصبية 🌿';
 
       nodesContainer.innerHTML = '';
       svgConnectors.innerHTML = '';
       window.ALL_TAPESTRY_CARDS = [];
 
-      const isDark = currentTheme === 'dark';
-      const strokeCol = isDark ? '#d97706' : '#6d4b30';
-      const spouseCol = isDark ? '#fbbf24' : '#b8860b';
-      const goldTrim = isDark ? '#f59e0b' : '#c5a059';
+      const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark') || currentTheme === 'dark';
+      const strokeCol = isDark ? '#f59e0b' : '#78350f';
+      const spouseCol = isDark ? '#fbbf24' : '#92400e';
+      const goldTrim = isDark ? '#f59e0b' : '#b45309';
+      const markerId = isDark ? 'arrow-gold-down' : 'arrow-bronze-down';
 
-      const totalCanvasWidth = 105000;
-      const totalCanvasHeight = 12500;
-      const centerX = 50000;
+      // Tall Portrait Master Canvas
+      const totalCanvasWidth = 5200;
+      const totalCanvasHeight = 9000;
+      const centerX = 2600;
       setCanvasDimensions(totalCanvasWidth, totalCanvasHeight);
 
       const allInds = window.FAMILY_DATA.individuals || [];
       const k34Nodes = window.FAMILY_DATA.k34_nodes || [];
-      const classicalAncestors = window.FAMILY_DATA.classical_ancestors || [];
-
       const byId = new Map(allInds.map(i => [i.id, i]));
       k34Nodes.forEach(n => byId.set(n.id, n));
-      classicalAncestors.forEach(n => byId.set(n.id, n));
 
       // Symmetrical 4-tier botanical boughs radiating from trunk to flanks
       const boughs = [
-        // Left Flank
-        { sourceY: 1545, targetX: 20000, targetY: 1800, thickness: 24, label: 'فرع العراق والقرية (Q)' },
-        { sourceY: 2200, targetX: 20000, targetY: 4000, thickness: 22, label: 'فرع السعودية والأحساء والقطيف (S/H)' },
-        { sourceY: 3000, targetX: 20000, targetY: 5800, thickness: 20, label: 'فرع آل داغر وآل عبد النبي (D)' },
-        { sourceY: 4200, targetX: 20000, targetY: 8600, thickness: 26, label: 'فرع آل الكايد والمدحوب (M)' },
-        // Right Flank
-        { sourceY: 1545, targetX: 52000, targetY: 800,  thickness: 18, label: 'فرع السنابس التاريخي (K34)' },
-        { sourceY: 2200, targetX: 52000, targetY: 1800, thickness: 20, label: 'فرع حسن وعباس آل خميس (K16-K33)' },
-        { sourceY: 3000, targetX: 52000, targetY: 4600, thickness: 20, label: 'فرع عبد الحميد وحسين آل خميس (K35-K46)' },
-        { sourceY: 4200, targetX: 52000, targetY: 7600, thickness: 32, label: 'فرع علي بن أحمد آل خميس — الجذع الأكبر (K01-K15)' }
+        // Left Flank (4 tiers)
+        { sourceY: 1000, targetX: 1100, targetY: 900, thickness: 16 },
+        { sourceY: 1900, targetX: 950,  targetY: 2200, thickness: 18 },
+        { sourceY: 3400, targetX: 1050, targetY: 4200, thickness: 20 },
+        { sourceY: 5200, targetX: 1150, targetY: 6200, thickness: 22 },
+        // Right Flank (4 tiers)
+        { sourceY: 1000, targetX: 4100, targetY: 900, thickness: 16 },
+        { sourceY: 1900, targetX: 4250, targetY: 2200, thickness: 18 },
+        { sourceY: 3400, targetX: 4150, targetY: 4200, thickness: 20 },
+        { sourceY: 5200, targetX: 4050, targetY: 6200, thickness: 22 }
       ];
 
-      let svgContent = generateOrganicTreeBackground(currentTheme, totalCanvasWidth, totalCanvasHeight, centerX, 11000, boughs, true);
+      let svgContent = generateOrganicTreeBackground(currentTheme, totalCanvasWidth, totalCanvasHeight, centerX, 7800, boughs, true, true);
 
-      // =========================================================================
       // SECTION A: 14 Epoch Patriarchs along the Central Trunk
-      // =========================================================================
       const patriarchs = [
-        { id: "ANC_ADAM", name: "آدم عليه السلام", title: "أبو البشر وخليفة الله في الأرض", era: "بداية الخلق", y: 300 },
-        { id: "ANC_SHEETH", name: "شيث عليه السلام", title: "هبة الله ووصي آدم الأول", era: "العصر الأول", y: 395 },
-        { id: "ANC_IDRIS", name: "إدريس عليه السلام", title: "أخنوخ — أول من خط بالقلم", era: "العصر الأول", y: 490 },
-        { id: "ANC_NUH", name: "نوح عليه السلام", title: "شيخ المرسلين والآدم الثاني", era: "عصر الطوفان", y: 585 },
-        { id: "ANC_SAM", name: "سام بن نوح", title: "أبو الشعوب والقبائل السامية", era: "ما بعد الطوفان", y: 680 },
-        { id: "ANC_HUD", name: "عابر (هود عليه السلام)", title: "فاتح عهد وقبائل العرب العاربة", era: "العصر القديم", y: 775 },
-        { id: "ANC_IBRAHIM", name: "إبراهيم الخليل عليه السلام", title: "خليل الرحمن وإمام الحنفاء", era: "~1900 ق.م", y: 870 },
-        { id: "ANC_ISMAIL", name: "إسماعيل الذبيح عليه السلام", title: "نبي الله وباني البيت الحرام", era: "~1800 ق.م", y: 965 },
-        { id: "ANC_ADNAN", name: "عَدْنَان", title: "جد العرب العدنانية المستعربة", era: "~600 ق.م", y: 1060 },
-        { id: "ANC_MAADD", name: "معدّ بن عدنان", title: "جد قبائل نزار ومضر وربيعة", era: "العصر القديم", y: 1155 },
-        { id: "ANC_NIZAR", name: "نزار بن معدّ", title: "أبو ربيعة ومضر وإياد وأنمار", era: "العصر القديم", y: 1250 },
-        { id: "ANC_RABIAH", name: "رَبِيعَة بن نزار", title: "ربيعة الفرس — الجذم العدناني بالبحرين التاريخية", era: "العصر القديم", y: 1345 },
-        { id: "ANC_TAGHLIB", name: "بنو تغلب وعبد القيس", title: "قبائل ربيعة العريقة بإقليم البحرين (أوال)", era: "صدر الإسلام", y: 1440 },
-        { id: "ANC_KHAMIS_ROOT", name: "علي بن خميس بن أحمد آل خميس (1819-1896م)", title: "الجد الجامع ومؤسس الأسرة بالسنابس وسترة", era: "1819 - 1896م", y: 1545 }
+        { id: "ANC_ADAM", name: "آدم عليه السلام", title: "أبو البشر وخليفة الله في الأرض", era: "بداية الخلق", y: 320 },
+        { id: "ANC_SHEETH", name: "شيث عليه السلام", title: "هبة الله ووصي آدم الأول", era: "العصر الأول", y: 415 },
+        { id: "ANC_IDRIS", name: "إدريس عليه السلام", title: "أخنوخ — أول من خط بالقلم", era: "العصر الأول", y: 510 },
+        { id: "ANC_NUH", name: "نوح عليه السلام", title: "شيخ المرسلين والآدم الثاني", era: "عصر الطوفان", y: 605 },
+        { id: "ANC_SAM", name: "سام بن نوح", title: "أبو الشعوب والقبائل السامية", era: "ما بعد الطوفان", y: 700 },
+        { id: "ANC_HUD", name: "عابر (هود عليه السلام)", title: "فاتح عهد وقبائل العرب العاربة", era: "العصر القديم", y: 795 },
+        { id: "ANC_IBRAHIM", name: "إبراهيم الخليل عليه السلام", title: "خليل الرحمن وإمام الحنفاء", era: "~1900 ق.م", y: 890 },
+        { id: "ANC_ISMAIL", name: "إسماعيل الذبيح عليه السلام", title: "نبي الله وباني البيت الحرام", era: "~1800 ق.م", y: 985 },
+        { id: "ANC_ADNAN", name: "عَدْنَان", title: "جد العرب العدنانية المستعربة", era: "~600 ق.م", y: 1080 },
+        { id: "ANC_MAADD", name: "معدّ بن عدنان", title: "جد قبائل نزار ومضر وربيعة", era: "العصر القديم", y: 1175 },
+        { id: "ANC_NIZAR", name: "نزار بن معدّ", title: "أبو ربيعة ومضر وإياد وأنمار", era: "العصر القديم", y: 1270 },
+        { id: "ANC_RABIAH", name: "رَبِيعَة بن نزار", title: "ربيعة الفرس — الجذم العدناني بالبحرين التاريخية", era: "العصر القديم", y: 1365 },
+        { id: "ANC_TAGHLIB", name: "بنو تغلب وعبد القيس", title: "قبائل ربيعة العريقة بإقليم البحرين (أوال)", era: "صدر الإسلام", y: 1460 },
+        { id: "ANC_KHAMIS_ROOT", name: "علي بن خميس بن أحمد آل خميس (1819-1896م)", title: "الجد الجامع ومؤسس الأسرة بالسنابس وسترة", era: "1819 - 1896م", y: 1565 }
       ];
 
       patriarchs.forEach((anc, idx) => {
@@ -1559,7 +1578,7 @@
         card.style.top = `${anc.y}px`;
         card.style.width = '280px';
         card.style.height = '60px';
-        card.style.borderColor = isDark ? '#d97706' : '#b8860b';
+        card.style.borderColor = strokeCol;
         card.style.borderWidth = '2px';
 
         card.innerHTML = `
@@ -1578,318 +1597,131 @@
           const prev = patriarchs[idx - 1];
           svgContent += `
             <line x1="${centerX}" y1="${prev.y + 60}" x2="${centerX}" y2="${anc.y}" 
-                  stroke="${strokeCol}" stroke-width="3" marker-end="url(#arrow-gold-down)" data-from="${prev.id}" data-to="${anc.id}" />
+                  stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" data-from="${prev.id}" data-to="${anc.id}" />
           `;
         }
       });
 
-      // =========================================================================
-      // SECTION B: Layout Engine with Orthogonal Family Bus (P-N-C)
-      // =========================================================================
-      const CARD_W = 190;
-      const CARD_H = 46;
-      const SPOUSE_GAP = 28;
-      const SIBLING_GAP = 24;
-      const LEVEL_H = 120;
+      // SECTION B: The 8 Symmetrical Grand Branch Portals
+      const branchDefinitions = [
+        // Left Flank
+        { code: 'Q',       title: 'فرع العراق والقرية (البصرة والنجف)', region: 'العراق', count: '198 فرداً موثقاً', targetX: 1100, targetY: 900, rootId: 'ANC_ROOT_Q' },
+        { code: 'S/H',     title: 'فرع السعودية والأحساء والقطيف', region: 'السعودية', count: '165 فرداً موثقاً', targetX: 950,  targetY: 2200, rootId: 'ANC_ROOT_S_H' },
+        { code: 'D',       title: 'فرع آل داغر وآل عبد النبي', region: 'البحرين والعراق', count: '274 فرداً موثقاً', targetX: 1050, targetY: 4200, rootId: 'ANC_ROOT_D' },
+        { code: 'M',       title: 'فرع آل الكايد والمدحوب', region: 'السنابس وسترة', count: '212 فرداً موثقاً', targetX: 1150, targetY: 6200, rootId: 'ANC_ROOT_M' },
+        // Right Flank
+        { code: 'k34',     title: 'مشجرة السنابس التاريخية (أسرة عيسى وعلي K34)', region: 'السنابس', count: '37 فرداً تاريخياً', targetX: 4100, targetY: 900, isK34: true },
+        { code: 'K16-K33', title: 'فرع حسن وعباس آل خميس', region: 'السنابس والبلاد القديم', count: '367 فرداً موثقاً', targetX: 4250, targetY: 2200, rootId: 'ANC_ROOT_K16-K33' },
+        { code: 'K35-K46', title: 'فرع عبد الحميد وحسين آل خميس', region: 'السنابس والدراز', count: '395 فرداً موثقاً', targetX: 4150, targetY: 4200, rootId: 'ANC_ROOT_K35-K46' },
+        { code: 'K01-K15', title: 'فرع علي بن أحمد آل خميس (الجذع الأكبر)', region: 'السنابس والمنامة', count: '917 فرداً موثقاً', targetX: 4050, targetY: 6200, rootId: 'ANC_ROOT_K01-K15' }
+      ];
 
-      function layoutBalancedFamilySubtree(nodeId, branchIds, visited = new Set()) {
-        if (visited.has(nodeId)) return { width: CARD_W, height: CARD_H, cards: [], lines: [] };
-        visited.add(nodeId);
+      branchDefinitions.forEach(b => {
+        const portalCard = document.createElement('div');
+        portalCard.id = `branch_portal_${b.code}`;
+        portalCard.className = 'absolute tree-card rounded-2xl p-3.5 shadow-2xl text-center cursor-pointer transition-all flex flex-col justify-center';
+        portalCard.style.left = `${b.targetX - 160}px`;
+        portalCard.style.top = `${b.targetY}px`;
+        portalCard.style.width = '320px';
+        portalCard.style.height = '86px';
+        portalCard.style.borderColor = isDark ? '#38bdf8' : '#3b7a57';
+        portalCard.style.borderWidth = '2px';
 
-        const node = byId.get(nodeId);
-        if (!node) return { width: CARD_W, height: CARD_H, cards: [], lines: [] };
-
-        const cards = [];
-        const lines = [];
-
-        let spouse = null;
-        if (node.spouse_ids && node.spouse_ids.length > 0) {
-          const s = byId.get(node.spouse_ids[0]);
-          if (s && branchIds.has(s.id)) {
-            spouse = s;
-            if ((spouse.child_ids || []).length === 0) visited.add(spouse.id);
-          }
-        }
-        const coupleW = spouse ? (CARD_W * 2 + SPOUSE_GAP) : CARD_W;
-
-        const children = (node.child_ids || [])
-          .filter(cid => branchIds.has(cid) && !visited.has(cid))
-          .map(cid => byId.get(cid))
-          .filter(Boolean);
-
-        if (children.length === 0) {
-          cards.push({ node, relX: 0, relY: 0, width: CARD_W, height: CARD_H });
-          if (spouse) {
-            cards.push({ node: spouse, relX: CARD_W + SPOUSE_GAP, relY: 0, width: CARD_W, height: CARD_H, isSpouse: true });
-            lines.push({ type: 'marriage', from: node.id, to: spouse.id, x1: CARD_W, y1: CARD_H/2, x2: CARD_W + SPOUSE_GAP, y2: CARD_H/2 });
-          }
-          return { width: coupleW, height: CARD_H, cards, lines };
-        }
-
-        const childLayouts = children.map(c => layoutBalancedFamilySubtree(c.id, branchIds, visited));
-        let childrenW = 0;
-        childLayouts.forEach((cl, i) => {
-          childrenW += cl.width;
-          if (i > 0) childrenW += SIBLING_GAP;
-        });
-
-        const totalW = Math.max(coupleW, childrenW);
-        const parentRelX = (totalW - coupleW) / 2;
-
-        cards.push({ node, relX: parentRelX, relY: 0, width: CARD_W, height: CARD_H });
-        let coupleMidX = parentRelX + CARD_W / 2;
-
-        if (spouse) {
-          cards.push({ node: spouse, relX: parentRelX + CARD_W + SPOUSE_GAP, relY: 0, width: CARD_W, height: CARD_H, isSpouse: true });
-          coupleMidX = parentRelX + CARD_W + SPOUSE_GAP / 2;
-          lines.push({ 
-            type: 'marriage', 
-            from: node.id, 
-            to: spouse.id, 
-            x1: parentRelX + CARD_W, 
-            y1: CARD_H / 2, 
-            x2: parentRelX + CARD_W + SPOUSE_GAP, 
-            y2: CARD_H / 2 
-          });
-        }
-
-        let curChildX = (totalW - childrenW) / 2;
-        const childMidXs = [];
-        childLayouts.forEach((cl, i) => {
-          const ch = children[i];
-          const childMidX = curChildX + cl.width / 2;
-          childMidXs.push({ midX: childMidX, id: ch.id });
-
-          cl.cards.forEach(c => {
-            cards.push({
-              node: c.node,
-              relX: curChildX + c.relX,
-              relY: LEVEL_H + c.relY,
-              width: c.width,
-              height: c.height,
-              isSpouse: c.isSpouse
-            });
-          });
-
-          cl.lines.forEach(l => {
-            lines.push({
-              ...l,
-              x1: curChildX + l.x1,
-              y1: LEVEL_H + l.y1,
-              x2: curChildX + l.x2,
-              y2: LEVEL_H + l.y2
-            });
-          });
-
-          curChildX += cl.width + SIBLING_GAP;
-        });
-
-        // Orthogonal Family Bus Conduits
-        const busY = LEVEL_H - 35;
-        const firstCx = childMidXs[0].midX;
-        const lastCx = childMidXs[childMidXs.length - 1].midX;
-
-        // 1. Vertical distribution stem from parents
-        lines.push({
-          type: 'stem',
-          from: node.id,
-          x1: coupleMidX,
-          y1: CARD_H,
-          x2: coupleMidX,
-          y2: busY
-        });
-
-        // 2. Horizontal sibling rail
-        lines.push({
-          type: 'bus',
-          x1: Math.min(coupleMidX, firstCx),
-          y1: busY,
-          x2: Math.max(coupleMidX, lastCx),
-          y2: busY
-        });
-
-        // 3. Vertical drops into child cards
-        childMidXs.forEach(cm => {
-          lines.push({
-            type: 'drop',
-            to: cm.id,
-            x1: cm.midX,
-            y1: busY,
-            x2: cm.midX,
-            y2: LEVEL_H
-          });
-        });
-
-        const maxChildH = Math.max(...childLayouts.map(cl => cl.height));
-        return { width: totalW, height: LEVEL_H + maxChildH, cards, lines };
-      }
-
-      // =========================================================================
-      // SECTION C: Lay Out All 8 Branches onto the Grand Canvas
-      // =========================================================================
-      const branchOffsets = {
-        'Q':       { startX: 800,           startY: 1800, title: 'فرع العراق والقرية (البصرة والنجف وكربلاء)' },
-        'S/H':     { startX: 800,           startY: 4000, title: 'فرع المملكة العربية السعودية (الأحساء والقطيف)' },
-        'D':       { startX: 800,           startY: 5800, title: 'فرع آل داغر وآل عبد النبي (البحرين والعراق)' },
-        'M':       { startX: 800,           startY: 8600, title: 'فرع آل الكايد والمدحوب (السنابس وسترة)' },
-        'K34':     { startX: centerX + 800, startY: 800,  title: 'مشجرة السنابس التاريخية (أسرة عيسى وعلي بن خميس K34)' },
-        'K16-K33': { startX: centerX + 800, startY: 1800, title: 'فرع حسن وعباس آل خميس (K16-K33)' },
-        'K35-K46': { startX: centerX + 800, startY: 4600, title: 'فرع عبد الحميد وحسين آل خميس (K35-K46)' },
-        'K01-K15': { startX: centerX + 800, startY: 7600, title: 'فرع علي بن أحمد آل خميس — الجذع الأكبر (K01-K15)' }
-      };
-
-      Object.entries(branchOffsets).forEach(([bCode, bConf]) => {
-        const bNodes = allInds.filter(i => {
-          const b = i.sub_branch || i.chart || i.branch || '';
-          return b.includes(bCode);
-        });
-
-        const linkedNodes = bNodes.filter(n => !n.isUnlinked);
-        const unlinkedNodes = bNodes.filter(n => n.isUnlinked);
-        const branchIds = new Set(linkedNodes.map(i => i.id));
-
-        const roots = linkedNodes.filter(node => {
-          const pids = node.parent_ids || [];
-          return !pids.some(pid => branchIds.has(pid));
-        });
-
-        roots.sort((a, b) => {
-          if (a.id.startsWith('ANC_ROOT_')) return -1;
-          if (b.id.startsWith('ANC_ROOT_')) return 1;
-          return 0;
-        });
-
-        // Branch Banner Label
-        svgContent += `
-          <g transform="translate(${bConf.startX}, ${bConf.startY - 60})">
-            <rect x="0" y="0" width="620" height="42" rx="12" fill="${isDark ? '#141824' : '#fffdf8'}" stroke="${goldTrim}" stroke-width="1.8" />
-            <text x="25" y="26" font-family="Amiri, serif" font-size="18" font-weight="bold" fill="${isDark ? '#fef3c7' : '#8c531d'}">🌿 ${bConf.title}</text>
-            <text x="590" y="26" text-anchor="end" font-family="Cairo, sans-serif" font-size="12" font-weight="bold" fill="${goldTrim}">(${linkedNodes.length} فرداً موثقاً)</text>
-          </g>
+        portalCard.innerHTML = `
+          <div class="font-bold text-sm font-amiri" style="color: ${isDark ? '#38bdf8' : '#2e5b3f'};" dir="rtl">${b.title}</div>
+          <div class="text-[11px] font-mono mt-0.5" style="color: var(--gold-accent);">${b.count} • ${b.region}</div>
+          <div class="text-[10px] mt-1 text-sky-600 dark:text-sky-400 font-semibold flex items-center justify-center gap-1">
+            <span>🔍 انقر للانتقال والاستعراض الكامل</span>
+          </div>
         `;
 
-        let curX = bConf.startX;
-        let curY = bConf.startY;
-        let maxBranchY = curY;
-        const visited = new Set();
+        portalCard.addEventListener('click', (e) => {
+          e.stopPropagation();
+          switchView(b.code);
+        });
 
-        roots.forEach(root => {
-          const res = layoutBalancedFamilySubtree(root.id, branchIds, visited);
+        nodesContainer.appendChild(portalCard);
+        window.ALL_TAPESTRY_CARDS.push({ id: portalCard.id, el: portalCard, x: b.targetX - 160, y: b.targetY, w: 320, h: 86 });
 
-          // Render Cards
-          res.cards.forEach(c => {
-            const posX = curX + c.relX;
-            const posY = curY + c.relY;
-            if (posY + c.height > maxBranchY) maxBranchY = posY + c.height;
+        // Connect Bough to Portal
+        svgContent += `
+          <circle cx="${b.targetX}" cy="${b.targetY}" r="6" fill="${strokeCol}" />
+        `;
+
+        // Foundational Sub-House Heads under each Portal (Zero Collision Guaranteed)
+        let subHeads = [];
+        if (b.isK34) {
+          const k34Heads = ['k34_isa_ali_1889', 'k34_ali_isa', 'k34_abbas_isa', 'k34_mirza_isa'];
+          subHeads = k34Heads.map(id => byId.get(id)).filter(Boolean);
+        } else {
+          const root = byId.get(b.rootId);
+          if (root && root.child_ids) {
+            subHeads = root.child_ids.map(cid => byId.get(cid)).filter(Boolean).slice(0, 4);
+          }
+        }
+
+        const count = subHeads.length;
+        if (count > 0) {
+          const houseW = 190;
+          const houseH = 48;
+          const gap = 24;
+          const totalRowW = count * houseW + (count - 1) * gap;
+          const startX = b.targetX - totalRowW / 2;
+          const startY = b.targetY + 140;
+
+          // Stem down from Portal
+          svgContent += `
+            <line x1="${b.targetX}" y1="${b.targetY + 86}" x2="${b.targetX}" y2="${startY - 25}" 
+                  stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" />
+          `;
+
+          subHeads.forEach((child, idx) => {
+            const cX = startX + idx * (houseW + gap);
+            const cY = startY;
 
             const card = document.createElement('div');
-            card.id = `card_${c.node.id}`;
+            card.id = `card_${child.id}`;
             card.className = 'absolute tree-card rounded-xl px-2.5 py-1.5 flex items-center justify-between text-xs shadow-md cursor-pointer transition-all';
-            card.style.left = `${posX}px`;
-            card.style.top = `${posY}px`;
-            card.style.width = `${c.width}px`;
-            card.style.height = `${c.height}px`;
+            card.style.left = `${cX}px`;
+            card.style.top = `${cY}px`;
+            card.style.width = `${houseW}px`;
+            card.style.height = `${houseH}px`;
 
-            const isLiving = c.node.status_type === 'living';
+            const isLiving = child.status_type === 'living';
             card.innerHTML = `
               <div class="truncate w-full text-right" dir="rtl">
                 <div class="flex items-center gap-1.5 justify-between">
-                  <span class="font-bold text-[11px] font-arabic truncate" style="color: var(--text-main);">${c.node.short_name || c.node.name}</span>
+                  <span class="font-bold text-[11px] font-arabic truncate" style="color: var(--text-main);">${child.short_name || child.name}</span>
                   <span class="text-[9px] shrink-0">${isLiving ? '🟢' : '⚪'}</span>
                 </div>
-                <div class="text-[9px] truncate" style="color: var(--text-muted);">${c.node.relation_type || c.node.title || c.node.role || 'فرد من الأسرة'}</div>
+                <div class="text-[9px] truncate" style="color: var(--text-muted);">${child.relation_type || child.title || child.role || 'رئيس أسرة'}</div>
               </div>
             `;
 
             card.addEventListener('click', (e) => {
               e.stopPropagation();
-              selectPerson(c.node.id, bCode);
+              selectPerson(child.id, b.code);
             });
-            card.addEventListener('mouseenter', () => traceNeuralKinship(c.node.id));
+            card.addEventListener('mouseenter', () => traceNeuralKinship(child.id));
 
             nodesContainer.appendChild(card);
-            window.ALL_TAPESTRY_CARDS.push({ id: c.node.id, el: card, x: posX, y: posY, w: c.width, h: c.height });
-          });
+            window.ALL_TAPESTRY_CARDS.push({ id: child.id, el: card, x: cX, y: cY, w: houseW, h: houseH });
 
-          // Render Connectors
-          res.lines.forEach(l => {
-            if (l.type === 'marriage') {
-              svgContent += `
-                <line x1="${curX + l.x1}" y1="${curY + l.y1}" x2="${curX + l.x2}" y2="${curY + l.y2}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-                <text x="${curX + (l.x1 + l.x2)/2}" y="${curY + l.y1 + 4}" text-anchor="middle" font-size="11">💍</text>
-              `;
-            } else if (l.type === 'stem' || l.type === 'drop') {
-              svgContent += `
-                <line x1="${curX + l.x1}" y1="${curY + l.y1}" x2="${curX + l.x2}" y2="${curY + l.y2}" stroke="${strokeCol}" stroke-width="1.8" />
-              `;
-            } else if (l.type === 'bus') {
-              svgContent += `
-                <line x1="${curX + l.x1}" y1="${curY + l.y1}" x2="${curX + l.x2}" y2="${curY + l.y2}" stroke="${strokeCol}" stroke-width="2.2" stroke-linecap="round" />
-              `;
-            }
-          });
-
-          curX += res.width + 160;
-        });
-
-        // =========================================================================
-        // SECTION D: Maternal & In-Law Archival Gallery (رواق الأصهار وأمهات الأسر)
-        // =========================================================================
-        if (unlinkedNodes.length > 0) {
-          const galX = bConf.startX;
-          const galY = maxBranchY + 120;
-          const cols = 12;
-
-          svgContent += `
-            <g transform="translate(${galX}, ${galY - 45})">
-              <rect x="0" y="0" width="540" height="32" rx="8" fill="${isDark ? '#1e2433' : '#f8f4eb'}" stroke="${goldTrim}" stroke-width="1.2" stroke-dasharray="4 2" />
-              <text x="16" y="21" font-family="Amiri, serif" font-size="14" font-weight="bold" fill="${goldTrim}">📜 رواق الأصهار وأمهات الأسر والوثائق الأرشيفية (${unlinkedNodes.length} قيداً موثقاً)</text>
-            </g>
-          `;
-
-          unlinkedNodes.forEach((u, uIdx) => {
-            const col = uIdx % cols;
-            const row = Math.floor(uIdx / cols);
-            const uX = galX + col * (CARD_W + 16);
-            const uY = galY + row * (CARD_H + 12);
-
-            const uCard = document.createElement('div');
-            uCard.id = `card_${u.id}`;
-            uCard.className = 'absolute tree-card rounded-xl px-2 py-1 flex items-center justify-between text-xs shadow-sm cursor-pointer opacity-85 hover:opacity-100 transition-all';
-            uCard.style.left = `${uX}px`;
-            uCard.style.top = `${uY}px`;
-            uCard.style.width = `${CARD_W}px`;
-            uCard.style.height = `${CARD_H}px`;
-            uCard.style.borderStyle = 'dashed';
-
-            uCard.innerHTML = `
-              <div class="truncate w-full text-right" dir="rtl">
-                <div class="flex items-center gap-1 justify-between">
-                  <span class="font-bold text-[10px] font-arabic truncate" style="color: var(--text-main);">${u.short_name || u.name}</span>
-                  <span class="text-[8px] shrink-0 text-amber-600">📜</span>
-                </div>
-                <div class="text-[8px] truncate text-slate-400">${u.relation_type || 'قيد أرشيفي موثق'} • ص ${u.page || '-'}</div>
-              </div>
+            // Smooth Bezier Conduit
+            svgContent += `
+              <path d="M ${b.targetX} ${startY - 25} C ${b.targetX} ${startY - 10}, ${cX + houseW/2} ${startY - 15}, ${cX + houseW/2} ${cY}" 
+                    fill="none" stroke="${strokeCol}" stroke-width="2" marker-end="url(#${markerId})" data-from="${b.rootId || b.code}" data-to="${child.id}" />
             `;
-
-            uCard.addEventListener('click', (e) => {
-              e.stopPropagation();
-              selectPerson(u.id, bCode);
-            });
-
-            nodesContainer.appendChild(uCard);
-            window.ALL_TAPESTRY_CARDS.push({ id: u.id, el: uCard, x: uX, y: uY, w: CARD_W, h: CARD_H });
           });
         }
       });
 
       svgConnectors.innerHTML = svgContent;
-
-      // Initial viewport culling pass to activate only cards currently visible
-      cullOffscreenCards();
+      scheduleViewportCulling(100);
     }
-/* ==========================================================================
-       5. VIEW 2: CHART K34 DIRECT ARCHIVAL TREE (COMPLETE 8-GENERATION TREE)
+
+    /* ==========================================================================
+       5. VIEW 2: CHART K34 DIRECT ARCHIVAL TREE (HIGH-CONTRAST KINSHIP LINES)
        ========================================================================== */
     function renderChartK34() {
       if (!window.FAMILY_DATA || !window.FAMILY_DATA.k34_nodes) {
@@ -1906,24 +1738,19 @@
       svgConnectors.innerHTML = '';
 
       const k34Nodes = window.FAMILY_DATA.k34_nodes;
-      const isDark = currentTheme === 'dark';
+      const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark') || currentTheme === 'dark';
       const nodeMap = new Map();
       k34Nodes.forEach(n => nodeMap.set(n.id, n));
 
-      // 1. Organic Tree Background: Trunk from bottom up to fork at Y=645, with boughs extending outward
-      const boughs = [
-        { sourceY: 645, targetX: 565, targetY: 690, thickness: 12 },   // Abbas branch
-        { sourceY: 645, targetX: 1045, targetY: 690, thickness: 10 },  // Husain
-        { sourceY: 645, targetX: 1375, targetY: 690, thickness: 10 },  // Isa & Najah
-        { sourceY: 645, targetX: 1740, targetY: 690, thickness: 12 },  // Hassan
-        { sourceY: 645, targetX: 2105, targetY: 690, thickness: 12 },  // Mohammed Redha & Zainab
-        { sourceY: 645, targetX: 2565, targetY: 690, thickness: 10 },  // Mohammed & Ruqayya
-        { sourceY: 645, targetX: 3025, targetY: 690, thickness: 10 },  // Fawziya & Rashid
-        { sourceY: 645, targetX: 3470, targetY: 690, thickness: 12 }   // Mirza branch
-      ];
-      let svg = generateOrganicTreeBackground(currentTheme, 3950, 1150, 1900, 600, boughs, false);
+      // Crisp contrast color tokens
+      const strokeCol = isDark ? '#f59e0b' : '#78350f';
+      const spouseCol = isDark ? '#fbbf24' : '#92400e';
+      const markerId = isDark ? 'arrow-gold-down' : 'arrow-bronze-down';
 
-      // 2. Render all 37 Nodes with exact hierarchical coordinates
+      // 1. Antique Fillet Border without heavy overlapping boughs
+      let svg = generateOrganicTreeBackground(currentTheme, 3950, 1150, 1975, 950, [], false);
+
+      // 2. Render all 37 Nodes with exact coordinates
       k34Nodes.forEach(node => {
         const card = document.createElement('div');
         card.id = `card_${node.id}`;
@@ -1934,7 +1761,7 @@
         card.style.height = `${node.height}px`;
 
         if (node.id === 'k34_isa_ali_1889' || node.id === 'k34_ali_khamis_1819' || node.id === 'k34_ali_isa') {
-          card.style.borderColor = isDark ? '#d97706' : '#b8860b';
+          card.style.borderColor = strokeCol;
           card.style.borderWidth = '2px';
         }
 
@@ -1961,22 +1788,19 @@
         nodesContainer.appendChild(card);
       });
 
-      // 3. Connectors & Branch Lines
-      const strokeCol = isDark ? '#d97706' : '#6d4b30';
-      const spouseCol = isDark ? '#fbbf24' : '#b8860b';
-
-      // --- Chain A: Patrilineal Vertical Ancestral Trunk (Gen 1 -> Gen 2 -> Gen 3 -> Gen 4) ---
+      // 3. Connectors & High-Contrast Kinship Lines
+      // --- Chain A: Patrilineal Ancestral Trunk (Gen 1 -> Gen 2 -> Gen 3 -> Gen 4) ---
       const ancestors = ['k34_ali_khamis_1819', 'k34_ahmed_ali', 'k34_khamis_ahmed', 'k34_ali_khamis_3'];
       for (let i = 0; i < ancestors.length - 1; i++) {
         const p = nodeMap.get(ancestors[i]);
         const c = nodeMap.get(ancestors[i + 1]);
         if (p && c) {
           const x = p.x + p.width / 2;
-          svg += `<line x1="${x}" y1="${p.y + p.height}" x2="${x}" y2="${c.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${x}" y1="${p.y + p.height}" x2="${x}" y2="${c.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
       }
 
-      // --- Chain B: Ali III (Gen 4) down to Gen 5 (Isa 1889 + Collateral Brothers Hassan & Mohammed) ---
+      // --- Chain B: Ali III (Gen 4) down to Gen 5 (Isa 1889 + Brothers Hassan & Mohammed) ---
       const nAli3 = nodeMap.get('k34_ali_khamis_3');
       const nHassanBrother = nodeMap.get('k34_hassan_ali_khamis');
       const nIsa1889 = nodeMap.get('k34_isa_ali_1889');
@@ -1988,32 +1812,31 @@
         const busY = 395;
         svg += `
           <line x1="${trunkX}" y1="${nAli3.y + nAli3.height}" x2="${trunkX}" y2="${busY}" stroke="${strokeCol}" stroke-width="2.5" />
-          <line x1="${nHassanBrother ? nHassanBrother.x + nHassanBrother.width / 2 : trunkX}" y1="${busY}" x2="${nMhdBrother ? nMhdBrother.x + nMhdBrother.width / 2 : trunkX}" y2="${busY}" stroke="${strokeCol}" stroke-width="2.2" />
+          <line x1="${nHassanBrother ? nHassanBrother.x + nHassanBrother.width / 2 : trunkX}" y1="${busY}" x2="${nMhdBrother ? nMhdBrother.x + nMhdBrother.width / 2 : trunkX}" y2="${busY}" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" />
         `;
 
         if (nHassanBrother) {
           const hx = nHassanBrother.x + nHassanBrother.width / 2;
-          svg += `<line x1="${hx}" y1="${busY}" x2="${hx}" y2="${nHassanBrother.y}" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${hx}" y1="${busY}" x2="${hx}" y2="${nHassanBrother.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
         if (nMhdBrother) {
           const mx = nMhdBrother.x + nMhdBrother.width / 2;
-          svg += `<line x1="${mx}" y1="${busY}" x2="${mx}" y2="${nMhdBrother.y}" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${mx}" y1="${busY}" x2="${mx}" y2="${nMhdBrother.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
-        // Drop down to Isa & Masooma couple midpoint
         const coupleMidX = (nIsa1889.x + nIsa1889.width + (nMasooma ? nMasooma.x : nIsa1889.x)) / 2;
-        svg += `<line x1="${coupleMidX}" y1="${busY}" x2="${coupleMidX}" y2="${nIsa1889.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#arrow-gold-down)" />`;
+        svg += `<line x1="${coupleMidX}" y1="${busY}" x2="${coupleMidX}" y2="${nIsa1889.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
       }
 
       // Spousal Link: Isa (1889) 💍 Masooma
       if (nIsa1889 && nMasooma) {
         const midY = nIsa1889.y + nIsa1889.height / 2;
         svg += `
-          <line x1="${nIsa1889.x + nIsa1889.width}" y1="${midY}" x2="${nMasooma.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-          <text x="${(nIsa1889.x + nIsa1889.width + nMasooma.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="11">💍</text>
+          <line x1="${nIsa1889.x + nIsa1889.width}" y1="${midY}" x2="${nMasooma.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+          <text x="${(nIsa1889.x + nIsa1889.width + nMasooma.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
         `;
       }
 
-      // --- Chain C: Isa (1889) & Masooma (Gen 5) down to Gen 6 (3 Brothers: Abbas, Ali, Mirza) ---
+      // --- Chain C: Isa (1889) & Masooma down to Gen 6 (Abbas, Ali, Mirza) ---
       const nAbbas = nodeMap.get('k34_abbas_isa');
       const nWifeAbbas = nodeMap.get('k34_wife_abbas');
       const nAliIsa = nodeMap.get('k34_ali_isa');
@@ -2032,10 +1855,10 @@
 
         svg += `
           <line x1="${coupleMidX}" y1="${bottomY}" x2="${coupleMidX}" y2="${busY6}" stroke="${strokeCol}" stroke-width="2.5" />
-          <line x1="${abbasMidX}" y1="${busY6}" x2="${mirzaMidX}" y2="${busY6}" stroke="${strokeCol}" stroke-width="2.5" />
-          <line x1="${abbasMidX}" y1="${busY6}" x2="${abbasMidX}" y2="${nAbbas.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#arrow-gold-down)" />
-          <line x1="${aliMidX}" y1="${busY6}" x2="${aliMidX}" y2="${nAliIsa.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#arrow-gold-down)" />
-          <line x1="${mirzaMidX}" y1="${busY6}" x2="${mirzaMidX}" y2="${nMirza.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#arrow-gold-down)" />
+          <line x1="${abbasMidX}" y1="${busY6}" x2="${mirzaMidX}" y2="${busY6}" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" />
+          <line x1="${abbasMidX}" y1="${busY6}" x2="${abbasMidX}" y2="${nAbbas.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />
+          <line x1="${aliMidX}" y1="${busY6}" x2="${aliMidX}" y2="${nAliIsa.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />
+          <line x1="${mirzaMidX}" y1="${busY6}" x2="${mirzaMidX}" y2="${nMirza.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />
         `;
       }
 
@@ -2043,22 +1866,22 @@
       if (nAbbas && nWifeAbbas) {
         const midY = nAbbas.y + nAbbas.height / 2;
         svg += `
-          <line x1="${nAbbas.x + nAbbas.width}" y1="${midY}" x2="${nWifeAbbas.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-          <text x="${(nAbbas.x + nAbbas.width + nWifeAbbas.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="11">💍</text>
+          <line x1="${nAbbas.x + nAbbas.width}" y1="${midY}" x2="${nWifeAbbas.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+          <text x="${(nAbbas.x + nAbbas.width + nWifeAbbas.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
         `;
       }
       if (nAliIsa && nBatool) {
         const midY = nAliIsa.y + nAliIsa.height / 2;
         svg += `
-          <line x1="${nAliIsa.x + nAliIsa.width}" y1="${midY}" x2="${nBatool.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-          <text x="${(nAliIsa.x + nAliIsa.width + nBatool.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="11">💍</text>
+          <line x1="${nAliIsa.x + nAliIsa.width}" y1="${midY}" x2="${nBatool.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+          <text x="${(nAliIsa.x + nAliIsa.width + nBatool.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
         `;
       }
       if (nMirza && nWifeMirza) {
         const midY = nMirza.y + nMirza.height / 2;
         svg += `
-          <line x1="${nMirza.x + nMirza.width}" y1="${midY}" x2="${nWifeMirza.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-          <text x="${(nMirza.x + nMirza.width + nWifeMirza.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="11">💍</text>
+          <line x1="${nMirza.x + nMirza.width}" y1="${midY}" x2="${nWifeMirza.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+          <text x="${(nMirza.x + nMirza.width + nWifeMirza.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
         `;
       }
 
@@ -2072,14 +1895,14 @@
         const lastKid = nodeMap.get('k34_najat_abbas');
         if (firstKid && lastKid) {
           svg += `
-            <line x1="${abbasMidX}" y1="${nAbbas.y + nAbbas.height}" x2="${abbasMidX}" y2="${busY7A}" stroke="${strokeCol}" stroke-width="2.2" />
-            <line x1="${firstKid.x + firstKid.width / 2}" y1="${busY7A}" x2="${lastKid.x + lastKid.width / 2}" y2="${busY7A}" stroke="${strokeCol}" stroke-width="2" />
+            <line x1="${abbasMidX}" y1="${nAbbas.y + nAbbas.height}" x2="${abbasMidX}" y2="${busY7A}" stroke="${strokeCol}" stroke-width="2.5" />
+            <line x1="${firstKid.x + firstKid.width / 2}" y1="${busY7A}" x2="${lastKid.x + lastKid.width / 2}" y2="${busY7A}" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" />
           `;
           abbasKids.forEach(kidId => {
             const kid = nodeMap.get(kidId);
             if (kid) {
               const kx = kid.x + kid.width / 2;
-              svg += `<line x1="${kx}" y1="${busY7A}" x2="${kx}" y2="${kid.y}" stroke="${strokeCol}" stroke-width="1.8" marker-end="url(#arrow-gold-down)" />`;
+              svg += `<line x1="${kx}" y1="${busY7A}" x2="${kx}" y2="${kid.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" />`;
             }
           });
         }
@@ -2093,14 +1916,14 @@
 
         svg += `
           <line x1="${coupleMidX}" y1="${coupleBottomY}" x2="${coupleMidX}" y2="${boughY}" stroke="${strokeCol}" stroke-width="3" />
-          <line x1="1045" y1="${boughY}" x2="3025" y2="${boughY}" stroke="${strokeCol}" stroke-width="2.5" />
+          <line x1="1045" y1="${boughY}" x2="3025" y2="${boughY}" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" />
         `;
 
         // Unit 1: Husain
         const nHusain = nodeMap.get('k34_husain_uncle');
         if (nHusain) {
           const cx = nHusain.x + nHusain.width / 2;
-          svg += `<line x1="${cx}" y1="${boughY}" x2="${cx}" y2="${nHusain.y}" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${cx}" y1="${boughY}" x2="${cx}" y2="${nHusain.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
 
         // Unit 2: Isa 💍 Najah
@@ -2109,18 +1932,18 @@
         if (nIsaSon && nNajah) {
           const midY = nIsaSon.y + nIsaSon.height / 2;
           svg += `
-            <line x1="${nIsaSon.x + nIsaSon.width}" y1="${midY}" x2="${nNajah.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-            <text x="${(nIsaSon.x + nIsaSon.width + nNajah.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="11">💍</text>
+            <line x1="${nIsaSon.x + nIsaSon.width}" y1="${midY}" x2="${nNajah.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+            <text x="${(nIsaSon.x + nIsaSon.width + nNajah.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
           `;
           const unitMidX = (nIsaSon.x + nIsaSon.width + nNajah.x) / 2;
-          svg += `<line x1="${unitMidX}" y1="${boughY}" x2="${unitMidX}" y2="${nIsaSon.y}" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${unitMidX}" y1="${boughY}" x2="${unitMidX}" y2="${nIsaSon.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
 
         // Unit 3: Hassan
         const nHassan = nodeMap.get('k34_hassan_father');
         if (nHassan) {
           const cx = nHassan.x + nHassan.width / 2;
-          svg += `<line x1="${cx}" y1="${boughY}" x2="${cx}" y2="${nHassan.y}" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${cx}" y1="${boughY}" x2="${cx}" y2="${nHassan.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
 
         // Unit 4: Mohammed Redha 💍 Zainab
@@ -2129,11 +1952,11 @@
         if (nMRedha && nZainab) {
           const midY = nMRedha.y + nMRedha.height / 2;
           svg += `
-            <line x1="${nMRedha.x + nMRedha.width}" y1="${midY}" x2="${nZainab.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-            <text x="${(nMRedha.x + nMRedha.width + nZainab.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="11">💍</text>
+            <line x1="${nMRedha.x + nMRedha.width}" y1="${midY}" x2="${nZainab.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+            <text x="${(nMRedha.x + nMRedha.width + nZainab.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
           `;
           const unitMidX = (nMRedha.x + nMRedha.width + nZainab.x) / 2;
-          svg += `<line x1="${unitMidX}" y1="${boughY}" x2="${unitMidX}" y2="${nMRedha.y}" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${unitMidX}" y1="${boughY}" x2="${unitMidX}" y2="${nMRedha.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
 
         // Unit 5: Mohammed 💍 Ruqayya
@@ -2142,11 +1965,11 @@
         if (nMohammed && nRuqayya) {
           const midY = nMohammed.y + nMohammed.height / 2;
           svg += `
-            <line x1="${nMohammed.x + nMohammed.width}" y1="${midY}" x2="${nRuqayya.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-            <text x="${(nMohammed.x + nMohammed.width + nRuqayya.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="11">💍</text>
+            <line x1="${nMohammed.x + nMohammed.width}" y1="${midY}" x2="${nRuqayya.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+            <text x="${(nMohammed.x + nMohammed.width + nRuqayya.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
           `;
           const unitMidX = (nMohammed.x + nMohammed.width + nRuqayya.x) / 2;
-          svg += `<line x1="${unitMidX}" y1="${boughY}" x2="${unitMidX}" y2="${nMohammed.y}" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${unitMidX}" y1="${boughY}" x2="${unitMidX}" y2="${nMohammed.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
 
         // Unit 6: Fawziya 💍 Rashid
@@ -2155,31 +1978,31 @@
         if (nFawziya && nRashid) {
           const midY = nFawziya.y + nFawziya.height / 2;
           svg += `
-            <line x1="${nFawziya.x + nFawziya.width}" y1="${midY}" x2="${nRashid.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" />
-            <text x="${(nFawziya.x + nFawziya.width + nRashid.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="11">💍</text>
+            <line x1="${nFawziya.x + nFawziya.width}" y1="${midY}" x2="${nRashid.x}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+            <text x="${(nFawziya.x + nFawziya.width + nRashid.x) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
           `;
           const unitMidX = (nFawziya.x + nFawziya.width + nRashid.x) / 2;
-          svg += `<line x1="${unitMidX}" y1="${boughY}" x2="${unitMidX}" y2="${nFawziya.y}" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" />`;
+          svg += `<line x1="${unitMidX}" y1="${boughY}" x2="${unitMidX}" y2="${nFawziya.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
         }
       }
 
-      // 3. Children of Mirza: Badriya, Rabab, Zahra
+      // 3. Children of Mirza: Jafar, Khadija, Kawthar
       if (nMirza && nWifeMirza) {
         const mirzaMidX = (nMirza.x + nMirza.width + nWifeMirza.x) / 2;
         const busY7M = 650;
-        const mirzaKids = ['k34_badriya_mirza', 'k34_rabab_mirza', 'k34_zahra_mirza'];
-        const firstKid = nodeMap.get('k34_badriya_mirza');
-        const lastKid = nodeMap.get('k34_zahra_mirza');
+        const mirzaKids = ['k34_jafar_mirza', 'k34_khadija_mirza', 'k34_kawthar_mirza'];
+        const firstKid = nodeMap.get('k34_jafar_mirza');
+        const lastKid = nodeMap.get('k34_kawthar_mirza');
         if (firstKid && lastKid) {
           svg += `
-            <line x1="${mirzaMidX}" y1="${nMirza.y + nMirza.height}" x2="${mirzaMidX}" y2="${busY7M}" stroke="${strokeCol}" stroke-width="2.2" />
-            <line x1="${firstKid.x + firstKid.width / 2}" y1="${busY7M}" x2="${lastKid.x + lastKid.width / 2}" y2="${busY7M}" stroke="${strokeCol}" stroke-width="2" />
+            <line x1="${mirzaMidX}" y1="${nMirza.y + nMirza.height}" x2="${mirzaMidX}" y2="${busY7M}" stroke="${strokeCol}" stroke-width="2.5" />
+            <line x1="${firstKid.x + firstKid.width / 2}" y1="${busY7M}" x2="${lastKid.x + lastKid.width / 2}" y2="${busY7M}" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" />
           `;
           mirzaKids.forEach(kidId => {
             const kid = nodeMap.get(kidId);
             if (kid) {
               const kx = kid.x + kid.width / 2;
-              svg += `<line x1="${kx}" y1="${busY7M}" x2="${kx}" y2="${kid.y}" stroke="${strokeCol}" stroke-width="1.8" marker-end="url(#arrow-gold-down)" />`;
+              svg += `<line x1="${kx}" y1="${busY7M}" x2="${kx}" y2="${kid.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" />`;
             }
           });
         }
@@ -2191,7 +2014,7 @@
       const nHusainSon = nodeMap.get('k34_husain_son');
       if (nHassan && nHusainSon) {
         const cx = nHassan.x + nHassan.width / 2;
-        svg += `<line x1="${cx}" y1="${nHassan.y + nHassan.height}" x2="${cx}" y2="${nHusainSon.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#arrow-gold-down)" />`;
+        svg += `<line x1="${cx}" y1="${nHassan.y + nHassan.height}" x2="${cx}" y2="${nHusainSon.y}" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" />`;
       }
 
       // 2. Mohammed Redha & Zainab -> 4 Children (Ahmed, Ali, Afaf, Kawthar)
@@ -2202,14 +2025,14 @@
         const coupleMidX = (nMRedha.x + nMRedha.width + nZainab.x) / 2;
         const forkY = 815;
         svg += `
-          <line x1="${coupleMidX}" y1="${nMRedha.y + nMRedha.height}" x2="${coupleMidX}" y2="${forkY}" stroke="${strokeCol}" stroke-width="2" />
-          <line x1="1950" y1="${forkY}" x2="2490" y2="${forkY}" stroke="${strokeCol}" stroke-width="1.8" />
+          <line x1="${coupleMidX}" y1="${nMRedha.y + nMRedha.height}" x2="${coupleMidX}" y2="${forkY}" stroke="${strokeCol}" stroke-width="2.5" />
+          <line x1="1950" y1="${forkY}" x2="2490" y2="${forkY}" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" />
         `;
         mRedhaKids.forEach(kidId => {
           const kid = nodeMap.get(kidId);
           if (kid) {
             const kx = kid.x + kid.width / 2;
-            svg += `<line x1="${kx}" y1="${forkY}" x2="${kx}" y2="${kid.y}" stroke="${strokeCol}" stroke-width="1.8" marker-end="url(#arrow-gold-down)" />`;
+            svg += `<line x1="${kx}" y1="${forkY}" x2="${kx}" y2="${kid.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" />`;
           }
         });
       }
@@ -2222,21 +2045,20 @@
         const coupleMidX = (nMohammed.x + nMohammed.width + nRuqayya.x) / 2;
         const forkY = 815;
         svg += `
-          <line x1="${coupleMidX}" y1="${nMohammed.y + nMohammed.height}" x2="${coupleMidX}" y2="${forkY}" stroke="${strokeCol}" stroke-width="2" />
-          <line x1="2670" y1="${forkY}" x2="2850" y2="${forkY}" stroke="${strokeCol}" stroke-width="1.8" />
+          <line x1="${coupleMidX}" y1="${nMohammed.y + nMohammed.height}" x2="${coupleMidX}" y2="${forkY}" stroke="${strokeCol}" stroke-width="2.5" />
+          <line x1="2670" y1="${forkY}" x2="2850" y2="${forkY}" stroke="${strokeCol}" stroke-width="2.5" stroke-linecap="round" />
         `;
         mohammedKids.forEach(kidId => {
           const kid = nodeMap.get(kidId);
           if (kid) {
             const kx = kid.x + kid.width / 2;
-            svg += `<line x1="${kx}" y1="${forkY}" x2="${kx}" y2="${kid.y}" stroke="${strokeCol}" stroke-width="1.8" marker-end="url(#arrow-gold-down)" />`;
+            svg += `<line x1="${kx}" y1="${forkY}" x2="${kx}" y2="${kid.y}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" />`;
           }
         });
       }
 
       svgConnectors.innerHTML = svg;
     }
-
 
     /* ==========================================================================
        6. VIEW 3: CLASSICAL HISTORICAL LINEAGE VIEW (37 GENERATIONS TO ADAM)
@@ -2324,10 +2146,7 @@
     }
 
     /* ==========================================================================
-       7. VIEW 4: DEDICATED BRANCH FOCUS VIEWS (K01-15, K16-33, Q, S/H, D, M, etc.)
-       ========================================================================== */
-        /* ==========================================================================
-       7. VIEW 4: SUB-BRANCH FAMILY UNIT VIEW (BALANCED SYMMETRICAL TREE ENGINE)
+       7. VIEW 4: SUB-BRANCH FAMILY UNIT VIEW (ZERO-COLLISION TALL-TREE CASCADE)
        ========================================================================== */
     function renderSubBranchView(branchCode) {
       if (!window.FAMILY_DATA || !window.FAMILY_DATA.individuals) {
@@ -2353,9 +2172,10 @@
       nodesContainer.innerHTML = '';
       svgConnectors.innerHTML = '';
 
-      const isDark = currentTheme === 'dark';
-      const strokeCol = isDark ? '#d97706' : '#6d4b30';
-      const spouseCol = isDark ? '#fbbf24' : '#b8860b';
+      const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark') || currentTheme === 'dark';
+      const strokeCol = isDark ? '#f59e0b' : '#78350f';
+      const spouseCol = isDark ? '#fbbf24' : '#92400e';
+      const markerId = isDark ? 'arrow-gold-down' : 'arrow-bronze-down';
 
       const allInds = window.FAMILY_DATA.individuals || [];
       const k34Nodes = window.FAMILY_DATA.k34_nodes || [];
@@ -2392,23 +2212,27 @@
         return 0;
       });
 
+      // Tall-Tree Architecture Dimensions & Spacing
       const CARD_W = 190;
-      const CARD_H = 46;
+      const CARD_H = 48;
       const SPOUSE_GAP = 28;
-      const SIBLING_GAP = 24;
-      const LEVEL_H = 120;
+      const SIBLING_GAP = 36;
+      const LEVEL_H = 220;
+      const ROW_GAP = 90;
+      const TRACK_GAP = 70;
 
-      // Symmetrical Hierarchical Layout Algorithm (0 Overlaps, 0 Staircases)
-      function layoutBalancedSubtree(nodeId, visited = new Set()) {
-        if (visited.has(nodeId)) return { width: CARD_W, height: CARD_H, cards: [], lines: [] };
-        visited.add(nodeId);
+      const visited = new Set();
 
-        const node = byId.get(nodeId);
-        if (!node) return { width: CARD_W, height: CARD_H, cards: [], lines: [] };
+      function layoutTallNode(nid) {
+        if (visited.has(nid)) return { w: CARD_W, h: CARD_H, cards: [], lines: [] };
+        visited.add(nid);
+        const node = byId.get(nid);
+        if (!node) return { w: CARD_W, h: CARD_H, cards: [], lines: [] };
 
-        const cards = [];
-        const lines = [];
+        const nCards = [];
+        const nLines = [];
 
+        // Check Spouse
         let spouse = null;
         if (node.spouse_ids && node.spouse_ids.length > 0) {
           const s = byId.get(node.spouse_ids[0]);
@@ -2419,105 +2243,206 @@
         }
         const coupleW = spouse ? (CARD_W * 2 + SPOUSE_GAP) : CARD_W;
 
-        const children = (node.child_ids || [])
-          .filter(cid => branchIds.has(cid) && !visited.has(cid))
-          .map(cid => byId.get(cid))
-          .filter(Boolean);
-
-        if (children.length === 0) {
-          cards.push({ node, relX: 0, relY: 0, width: CARD_W, height: CARD_H });
+        const cids = (node.child_ids || []).filter(cid => branchIds.has(cid) && !visited.has(cid));
+        if (cids.length === 0) {
+          nCards.push({ node, x: 0, y: 0, w: CARD_W, h: CARD_H });
           if (spouse) {
-            cards.push({ node: spouse, relX: CARD_W + SPOUSE_GAP, relY: 0, width: CARD_W, height: CARD_H, isSpouse: true });
-            lines.push({ type: 'marriage', from: node.id, to: spouse.id, x1: CARD_W, y1: CARD_H/2, x2: CARD_W + SPOUSE_GAP, y2: CARD_H/2 });
+            nCards.push({ node: spouse, x: CARD_W + SPOUSE_GAP, y: 0, w: CARD_W, h: CARD_H, isSpouse: true });
+            nLines.push({ type: 'marriage', from: node.id, to: spouse.id, x1: CARD_W, y1: CARD_H / 2, x2: CARD_W + SPOUSE_GAP, y2: CARD_H / 2 });
           }
-          return { width: coupleW, height: CARD_H, cards, lines };
+          return { w: coupleW, h: CARD_H, cards: nCards, lines: nLines };
         }
 
-        const childLayouts = children.map(c => layoutBalancedSubtree(c.id, visited));
-        let childrenW = 0;
-        childLayouts.forEach((cl, i) => {
-          childrenW += cl.width;
-          if (i > 0) childrenW += SIBLING_GAP;
+        // Separate Continuing Lineages from Terminal Leaf Children
+        const contKids = cids.filter(cid => {
+          const chNode = byId.get(cid);
+          return chNode && (chNode.child_ids || []).some(gc => branchIds.has(gc));
         });
+        const leafKids = cids.filter(cid => !contKids.includes(cid));
 
-        const totalW = Math.max(coupleW, childrenW);
-        const parentRelX = (totalW - coupleW) / 2;
+        const contLayouts = contKids.map(cid => layoutTallNode(cid));
+        const totalContW = contLayouts.reduce((sum, cl) => sum + cl.w, 0) + Math.max(0, contLayouts.length - 1) * SIBLING_GAP;
 
-        cards.push({ node, relX: parentRelX, relY: 0, width: CARD_W, height: CARD_H });
-        let coupleMidX = parentRelX + CARD_W / 2;
-
-        if (spouse) {
-          cards.push({ node: spouse, relX: parentRelX + CARD_W + SPOUSE_GAP, relY: 0, width: CARD_W, height: CARD_H, isSpouse: true });
-          coupleMidX = parentRelX + CARD_W + SPOUSE_GAP / 2;
-          lines.push({ 
-            type: 'marriage', 
-            from: node.id, 
-            to: spouse.id, 
-            x1: parentRelX + CARD_W, 
-            y1: CARD_H / 2, 
-            x2: parentRelX + CARD_W + SPOUSE_GAP, 
-            y2: CARD_H / 2 
+        // Compact Grid for Leaf Children
+        const leafCards = [];
+        let leafW = 0;
+        let leafH = 0;
+        if (leafKids.length > 0) {
+          const cols = Math.min(2, leafKids.length);
+          leafKids.forEach((lkid, i) => {
+            const lnode = byId.get(lkid);
+            visited.add(lkid);
+            const col = i % cols;
+            const row = Math.floor(i / cols);
+            const lx = col * (CARD_W + 28);
+            const ly = row * (CARD_H + 20);
+            leafCards.push({ node: lnode, x: lx, y: ly, w: CARD_W, h: CARD_H });
+            leafW = Math.max(leafW, lx + CARD_W);
+            leafH = Math.max(leafH, ly + CARD_H);
           });
         }
 
-        let curChildX = (totalW - childrenW) / 2;
-        childLayouts.forEach((cl, i) => {
-          const ch = children[i];
-          const childMidX = curChildX + cl.width / 2;
+        // Branch Layout Decision: Horizontal if small, else 2-Track Symmetrical Cascade
+        if (contLayouts.length <= 2 && (totalContW + leafW) < 1600) {
+          const allGroups = [];
+          if (leafCards.length > 0) {
+            allGroups.append = allGroups.push({ w: leafW, h: leafH, cards: leafCards, isLeaf: true });
+          }
+          contLayouts.forEach((cl, i) => {
+            allGroups.push({ w: cl.w, h: cl.h, cards: cl.cards, lines: cl.lines, isLeaf: false, kidId: contKids[i] });
+          });
 
-          cl.cards.forEach(c => {
-            cards.push({
-              node: c.node,
-              relX: curChildX + c.relX,
-              relY: LEVEL_H + c.relY,
-              width: c.width,
-              height: c.height,
-              isSpouse: c.isSpouse
+          const totW = allGroups.reduce((s, g) => s + g.w, 0) + Math.max(0, allGroups.length - 1) * SIBLING_GAP;
+          const blockW = Math.max(coupleW, totW);
+          const parentX = (blockW - coupleW) / 2;
+
+          nCards.push({ node, x: parentX, y: 0, w: CARD_W, h: CARD_H });
+          let coupleMidX = parentX + CARD_W / 2;
+          if (spouse) {
+            nCards.push({ node: spouse, x: parentX + CARD_W + SPOUSE_GAP, y: 0, w: CARD_W, h: CARD_H, isSpouse: true });
+            coupleMidX = parentX + CARD_W + SPOUSE_GAP / 2;
+            nLines.push({ type: 'marriage', from: node.id, to: spouse.id, x1: parentX + CARD_W, y1: CARD_H / 2, x2: parentX + CARD_W + SPOUSE_GAP, y2: CARD_H / 2 });
+          }
+
+          let curX = (blockW - totW) / 2;
+          let maxGh = 0;
+          allGroups.forEach(g => {
+            const midX = curX + g.w / 2;
+            (g.cards || []).forEach(c => {
+              nCards.push({ node: c.node, x: curX + c.x, y: LEVEL_H + c.y, w: c.w, h: c.h, isSpouse: c.isSpouse });
             });
-          });
-
-          cl.lines.forEach(l => {
-            lines.push({
-              ...l,
-              x1: curChildX + l.x1,
-              y1: LEVEL_H + l.y1,
-              x2: curChildX + l.x2,
-              y2: LEVEL_H + l.y2
+            (g.lines || []).forEach(l => {
+              nLines.push({ ...l, x1: curX + l.x1, y1: LEVEL_H + l.y1, x2: curX + l.x2, y2: LEVEL_H + l.y2 });
             });
+            if (g.isLeaf) {
+              (g.cards || []).forEach(lk => {
+                nLines.push({ type: 'drop', toId: lk.node.id, x1: curX + lk.x + CARD_W / 2, y1: LEVEL_H - 30, x2: curX + lk.x + CARD_W / 2, y2: LEVEL_H + lk.y });
+              });
+            } else {
+              nLines.push({ type: 'drop', toId: g.kidId, x1: midX, y1: LEVEL_H - 30, x2: midX, y2: LEVEL_H });
+            }
+            if (g.h > maxGh) maxGh = g.h;
+            curX += g.w + SIBLING_GAP;
           });
 
-          // Smooth Bezier conduit from parent to child
-          lines.push({
-            type: 'conduit',
-            fromId: node.id,
-            toId: ch.id,
-            x1: coupleMidX,
-            y1: CARD_H,
-            x2: childMidX,
-            y2: LEVEL_H
+          const firstCx = (blockW - totW) / 2 + allGroups[0].w / 2;
+          const lastCx = curX - SIBLING_GAP - allGroups[allGroups.length - 1].w / 2;
+          const busY = LEVEL_H - 30;
+          nLines.push({ type: 'stem', fromId: node.id, x1: coupleMidX, y1: CARD_H, x2: coupleMidX, y2: busY });
+          nLines.push({ type: 'bus', x1: Math.min(coupleMidX, firstCx), y1: busY, x2: Math.max(coupleMidX, lastCx), y2: busY });
+
+        } else {
+          // 2-Track Symmetrical Vertical Cascade (Left Track & Right Track)
+          const leftCont = [];
+          const rightCont = [];
+          let leftH = 0;
+          let rightH = 0;
+
+          contLayouts.forEach((cl, i) => {
+            const kidId = contKids[i];
+            if (leftH <= rightH) {
+              leftCont.push({ cl, kidId });
+              leftH += cl.h + ROW_GAP;
+            } else {
+              rightCont.push({ cl, kidId });
+              rightH += cl.h + ROW_GAP;
+            }
           });
 
-          curChildX += cl.width + SIBLING_GAP;
-        });
+          const leftW = leftCont.length > 0 ? Math.max(...leftCont.map(c => c.cl.w)) : 0;
+          const rightW = rightCont.length > 0 ? Math.max(...rightCont.map(c => c.cl.w)) : 0;
 
-        const maxChildH = Math.max(...childLayouts.map(cl => cl.height));
-        return { width: totalW, height: LEVEL_H + maxChildH, cards, lines };
+          const spineX = leftW + TRACK_GAP;
+          const parentX = Math.max(0, spineX - coupleW / 2);
+          let coupleMidX = parentX + CARD_W / 2;
+
+          nCards.push({ node, x: parentX, y: 0, w: CARD_W, h: CARD_H });
+          if (spouse) {
+            nCards.push({ node: spouse, x: parentX + CARD_W + SPOUSE_GAP, y: 0, w: CARD_W, h: CARD_H, isSpouse: true });
+            coupleMidX = parentX + CARD_W + SPOUSE_GAP / 2;
+            nLines.push({ type: 'marriage', from: node.id, to: spouse.id, x1: parentX + CARD_W, y1: CARD_H / 2, x2: parentX + CARD_W + SPOUSE_GAP, y2: CARD_H / 2 });
+          }
+
+          let currentY = LEVEL_H;
+          if (leafCards.length > 0) {
+            const leafStartX = spineX - leafW / 2;
+            leafCards.forEach(c => {
+              nCards.push({ node: c.node, x: leafStartX + c.x, y: currentY + c.y, w: c.w, h: c.h });
+              nLines.push({ type: 'drop', toId: c.node.id, x1: leafStartX + c.x + CARD_W / 2, y1: currentY - 25, x2: leafStartX + c.x + CARD_W / 2, y2: currentY + c.y });
+            });
+            currentY += leafH + ROW_GAP;
+          }
+
+          let leftCurY = currentY;
+          let rightCurY = currentY;
+
+          // Place left track (right-aligned to spineX - TRACK_GAP)
+          leftCont.forEach(item => {
+            const cl = item.cl;
+            const subX = spineX - TRACK_GAP - cl.w;
+            const subY = leftCurY;
+            cl.cards.forEach(c => {
+              nCards.push({ node: c.node, x: subX + c.x, y: subY + c.y, w: c.w, h: c.h, isSpouse: c.isSpouse });
+            });
+            cl.lines.forEach(l => {
+              nLines.push({ ...l, x1: subX + l.x1, y1: subY + l.y1, x2: subX + l.x2, y2: subY + l.y2 });
+            });
+            const subMidX = subX + cl.w / 2;
+            nLines.push({ type: 'branch_left', fromId: node.id, toId: item.kidId, x1: spineX, y1: subY - 30, x2: subMidX, y2: subY });
+            leftCurY += cl.h + ROW_GAP;
+          });
+
+          // Place right track (left-aligned to spineX + TRACK_GAP)
+          rightCont.forEach(item => {
+            const cl = item.cl;
+            const subX = spineX + TRACK_GAP;
+            const subY = rightCurY;
+            cl.cards.forEach(c => {
+              nCards.push({ node: c.node, x: subX + c.x, y: subY + c.y, w: c.w, h: c.h, isSpouse: c.isSpouse });
+            });
+            cl.lines.forEach(l => {
+              nLines.push({ ...l, x1: subX + l.x1, y1: subY + l.y1, x2: subX + l.x2, y2: subY + l.y2 });
+            });
+            const subMidX = subX + cl.w / 2;
+            nLines.push({ type: 'branch_right', fromId: node.id, toId: item.kidId, x1: spineX, y1: subY - 30, x2: subMidX, y2: subY });
+            rightCurY += cl.h + ROW_GAP;
+          });
+
+          const maxY = Math.max(leftCurY, rightCurY);
+          nLines.push({ type: 'spine', x1: spineX, y1: CARD_H, x2: spineX, y2: maxY - ROW_GAP });
+          if (coupleMidX !== spineX) {
+            nLines.push({ type: 'connector', x1: coupleMidX, y1: CARD_H, x2: spineX, y2: CARD_H });
+          }
+        }
+
+        // Coordinate normalization: ensure minX = 0, minY = 0
+        const minX = Math.min(...nCards.map(c => c.x));
+        if (minX < 0) {
+          nCards.forEach(c => c.x -= minX);
+          nLines.forEach(l => {
+            if (l.x1 !== undefined) l.x1 -= minX;
+            if (l.x2 !== undefined) l.x2 -= minX;
+          });
+        }
+        const maxBlockX = Math.max(...nCards.map(c => c.x + c.w));
+        const maxBlockY = Math.max(...nCards.map(c => c.y + c.h));
+
+        return { w: maxBlockX, h: maxBlockY, cards: nCards, lines: nLines };
       }
 
       // Layout all roots
-      let currentX = 160;
+      let currentX = 140;
       const allCards = [];
       const allLines = [];
-      const visited = new Set();
 
       roots.forEach(root => {
         if (visited.has(root.id)) return;
-        const res = layoutBalancedSubtree(root.id, visited);
+        const res = layoutTallNode(root.id);
         res.cards.forEach(c => {
           allCards.push({
             ...c,
-            x: currentX + c.relX,
-            y: 180 + c.relY
+            x: currentX + c.x,
+            y: 180 + c.y
           });
         });
         res.lines.forEach(l => {
@@ -2529,32 +2454,52 @@
             y2: 180 + l.y2
           });
         });
-        currentX += res.width + 120;
+        currentX += res.w + 140;
       });
 
-      const maxX = Math.max(currentX + 160, 3200);
-      let maxY = 1800;
+      const maxX = Math.max(currentX + 160, 3600);
+      let maxY = 3200;
       allCards.forEach(c => {
         if (c.y + c.height + 250 > maxY) maxY = c.y + c.height + 250;
       });
 
       setCanvasDimensions(maxX, maxY);
 
-      // Organic Tree Background
+      // Clean background border without obscuring tree limbs
       let svg = generateOrganicTreeBackground(currentTheme, maxX, maxY, maxX / 2, 160, [], false);
 
-      // Render Connectors
+      // Render High-Contrast Kinship Conduits
       allLines.forEach(l => {
         if (l.type === 'marriage') {
           svg += `
-            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${spouseCol}" stroke-width="2" stroke-dasharray="4 3" data-from="${l.from}" data-to="${l.to}" />
+            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" data-from="${l.from}" data-to="${l.to}" />
             <text x="${(l.x1 + l.x2)/2}" y="${l.y1 + 4}" text-anchor="middle" font-size="12">💍</text>
           `;
-        } else if (l.type === 'conduit') {
-          const midY = (l.y1 + l.y2) / 2;
+        } else if (l.type === 'branch_left') {
           svg += `
-            <path d="M ${l.x1} ${l.y1} C ${l.x1} ${midY}, ${l.x2} ${midY}, ${l.x2} ${l.y2}" 
-                  fill="none" stroke="${strokeCol}" stroke-width="2" marker-end="url(#arrow-gold-down)" data-from="${l.fromId}" data-to="${l.toId}" />
+            <path d="M ${l.x1} ${l.y1} C ${l.x1 - 40} ${l.y1}, ${l.x2} ${l.y2 - 30}, ${l.x2} ${l.y2}" 
+                  fill="none" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" data-from="${l.fromId}" data-to="${l.toId}" />
+          `;
+        } else if (l.type === 'branch_right') {
+          svg += `
+            <path d="M ${l.x1} ${l.y1} C ${l.x1 + 40} ${l.y1}, ${l.x2} ${l.y2 - 30}, ${l.x2} ${l.y2}" 
+                  fill="none" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" data-from="${l.fromId}" data-to="${l.toId}" />
+          `;
+        } else if (l.type === 'spine' || l.type === 'bus') {
+          svg += `
+            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.8" stroke-linecap="round" />
+          `;
+        } else if (l.type === 'stem') {
+          svg += `
+            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.5" />
+          `;
+        } else if (l.type === 'drop') {
+          svg += `
+            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" data-to="${l.toId || ''}" />
+          `;
+        } else if (l.type === 'connector') {
+          svg += `
+            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.2" />
           `;
         }
       });
@@ -2568,12 +2513,11 @@
         card.className = 'absolute tree-card rounded-xl px-2.5 py-1.5 flex items-center justify-between text-xs shadow-md cursor-pointer transition-all';
         card.style.left = `${c.x}px`;
         card.style.top = `${c.y}px`;
-        card.style.width = `${c.width}px`;
-        card.style.height = `${c.height}px`;
+        card.style.width = `${c.w}px`;
+        card.style.height = `${c.h}px`;
 
-        if (c.node.id.startsWith('ANC_ROOT_')) {
-          card.style.borderColor = isDark ? '#38bdf8' : '#3b7a57';
-          card.style.borderWidth = '2px';
+        if (c.isSpouse) {
+          card.style.borderStyle = 'dashed';
         }
 
         const isLiving = c.node.status_type === 'living';
@@ -2583,7 +2527,7 @@
               <span class="font-bold text-[11px] font-arabic truncate" style="color: var(--text-main);">${c.node.short_name || c.node.name}</span>
               <span class="text-[9px] shrink-0">${isLiving ? '🟢' : '⚪'}</span>
             </div>
-            <div class="text-[9px] truncate" style="color: var(--text-muted);">${c.node.relation_type || c.node.title || ''}</div>
+            <div class="text-[9px] truncate" style="color: var(--text-muted);">${c.node.relation_type || c.node.title || c.node.role || 'فرد من الأسرة'}</div>
           </div>
         `;
 
@@ -2595,191 +2539,9 @@
 
         nodesContainer.appendChild(card);
       });
-
-      fitToScreen();
     }
 
     /* ==========================================================================
-       NEURAL KINSHIP PROPAGATION & INTERACTIVE HUD ENGINE
-       ========================================================================== */
-    function getAncestors(id, byId, visited = new Set()) {
-      const node = byId.get(id);
-      if (!node || visited.has(id)) return [];
-      visited.add(id);
-      const pids = node.parent_ids || [];
-      const ancestors = [];
-      pids.forEach(pid => {
-        const p = byId.get(pid);
-        if (p) {
-          ancestors.push(p);
-          ancestors.push(...getAncestors(pid, byId, visited));
-        }
-      });
-      return ancestors;
-    }
-
-    function getDescendants(id, byId, visited = new Set()) {
-      const node = byId.get(id);
-      if (!node || visited.has(id)) return [];
-      visited.add(id);
-      const cids = node.child_ids || [];
-      const descendants = [];
-      cids.forEach(cid => {
-        const c = byId.get(cid);
-        if (c) {
-          descendants.push(c);
-          descendants.push(...getDescendants(cid, byId, visited));
-        }
-      });
-      return descendants;
-    }
-
-    function getSiblings(id, byId) {
-      const node = byId.get(id);
-      if (!node) return [];
-      const pids = node.parent_ids || [];
-      if (pids.length === 0) return [];
-      const sibSet = new Set();
-      pids.forEach(pid => {
-        const par = byId.get(pid);
-        if (par) {
-          (par.child_ids || []).forEach(cid => {
-            if (cid !== id && byId.has(cid)) sibSet.add(cid);
-          });
-        }
-      });
-      return Array.from(sibSet).map(sid => byId.get(sid)).filter(Boolean);
-    }
-
-    function getUncles(id, byId) {
-      const node = byId.get(id);
-      if (!node) return [];
-      const pids = node.parent_ids || [];
-      const uncleSet = new Set();
-      pids.forEach(pid => {
-        const parSibs = getSiblings(pid, byId);
-        parSibs.forEach(s => uncleSet.add(s.id));
-      });
-      return Array.from(uncleSet).map(uid => byId.get(uid)).filter(Boolean);
-    }
-
-    function getCousins(id, byId) {
-      const uncles = getUncles(id, byId);
-      const cousinSet = new Set();
-      uncles.forEach(u => {
-        (u.child_ids || []).forEach(cid => {
-          if (cid !== id && byId.has(cid)) cousinSet.add(cid);
-        });
-      });
-      return Array.from(cousinSet).map(cid => byId.get(cid)).filter(Boolean);
-    }
-
-    function traceNeuralKinship(personId) {
-      if (!personId || !window.FAMILY_DATA) return;
-      const allInds = window.FAMILY_DATA.individuals || [];
-      const byId = new Map(allInds.map(i => [i.id, i]));
-      (window.FAMILY_DATA.k34_nodes || []).forEach(n => byId.set(n.id, n));
-      (window.FAMILY_DATA.classical_ancestors || []).forEach(a => byId.set(a.id, a));
-
-      const person = byId.get(personId);
-      if (!person) return;
-
-      const ancestors = getAncestors(personId, byId);
-      const descendants = getDescendants(personId, byId);
-      const siblings = getSiblings(personId, byId);
-      const uncles = getUncles(personId, byId);
-      const cousins = getCousins(personId, byId);
-
-      const ancestorIds = new Set(ancestors.map(a => a.id));
-      const descendantIds = new Set(descendants.map(d => d.id));
-      const siblingIds = new Set(siblings.map(s => s.id));
-      const uncleIds = new Set(uncles.map(u => u.id));
-      const cousinIds = new Set(cousins.map(c => c.id));
-      const spouseIds = new Set(person.spouse_ids || []);
-
-      const connectedIds = new Set([
-        personId,
-        ...ancestorIds,
-        ...descendantIds,
-        ...siblingIds,
-        ...uncleIds,
-        ...cousinIds,
-        ...spouseIds
-      ]);
-
-      const allCards = document.querySelectorAll('.tree-card');
-      allCards.forEach(card => {
-        const rawId = card.id.replace('master_card_', '').replace('card_', '');
-        card.classList.remove('neural-active', 'neural-ancestor', 'neural-sibling', 'neural-uncle', 'neural-cousin', 'neural-descendant', 'neural-dimmed');
-
-        if (rawId === personId) {
-          card.classList.add('neural-active');
-        } else if (ancestorIds.has(rawId)) {
-          card.classList.add('neural-ancestor');
-        } else if (siblingIds.has(rawId)) {
-          card.classList.add('neural-sibling');
-        } else if (uncleIds.has(rawId)) {
-          card.classList.add('neural-uncle');
-        } else if (cousinIds.has(rawId)) {
-          card.classList.add('neural-cousin');
-        } else if (descendantIds.has(rawId)) {
-          card.classList.add('neural-descendant');
-        } else {
-          card.classList.add('neural-dimmed');
-        }
-      });
-
-      const lines = svgConnectors.querySelectorAll('line, path');
-      lines.forEach(l => {
-        const from = l.getAttribute('data-from');
-        const to = l.getAttribute('data-to');
-        if ((from && connectedIds.has(from)) || (to && connectedIds.has(to))) {
-          l.classList.add('neural-pulse-line');
-        } else {
-          l.classList.remove('neural-pulse-line');
-        }
-      });
-
-      // Update HUD
-      const hud = document.getElementById('neuralKinshipHUD');
-      if (hud) {
-        document.getElementById('hudPersonName').textContent = person.short_name || person.name;
-        document.getElementById('hudPersonBranch').textContent = `${person.branch || person.sub_branch || ''} • ${person.generation || ''}`;
-        document.getElementById('hudAncestorsCount').textContent = ancestors.length;
-        document.getElementById('hudSiblingsCount').textContent = siblings.length;
-        document.getElementById('hudUnclesCount').textContent = uncles.length;
-        document.getElementById('hudCousinsCount').textContent = cousins.length;
-        document.getElementById('hudDescendantsCount').textContent = descendants.length;
-
-        document.getElementById('hudOpenDrawerBtn').onclick = () => {
-          populatePersonDrawer(person);
-          document.getElementById('personDrawer').classList.remove('translate-x-full');
-          document.getElementById('drawerBackdrop').classList.remove('hidden');
-        };
-
-        hud.classList.remove('hidden');
-      }
-    }
-
-    function clearNeuralKinship() {
-      const allCards = document.querySelectorAll('.tree-card');
-      allCards.forEach(card => {
-        card.classList.remove('neural-active', 'neural-ancestor', 'neural-sibling', 'neural-uncle', 'neural-cousin', 'neural-descendant', 'neural-dimmed');
-      });
-      const lines = svgConnectors.querySelectorAll('.neural-pulse-line');
-      lines.forEach(l => l.classList.remove('neural-pulse-line'));
-      const hud = document.getElementById('neuralKinshipHUD');
-      if (hud) hud.classList.add('hidden');
-    }
-
-    // Dismiss neural highlight on background click
-    viewport.addEventListener('click', (e) => {
-      if (!e.target.closest('.tree-card') && !e.target.closest('#neuralKinshipHUD') && !e.target.closest('button')) {
-        clearNeuralKinship();
-      }
-    });
-
-/* ==========================================================================
        8. VIEW 5: MASTER REGISTRY TABLE (SEARCHABLE 2,225+ INDIVIDUALS WITH FAST PAGINATION)
        ========================================================================== */
     let registryCurrentPage = 1;
@@ -3649,6 +3411,7 @@
         renderRegistryTable();
       } else {
         renderSubBranchView(viewKey);
+        fitToScreen();
       }
     }
 
