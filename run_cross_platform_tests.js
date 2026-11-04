@@ -77,15 +77,22 @@ async function runTests() {
   const initialTrans = await page1080.evaluate(() => ({ scale: currentScale, tx: translateX, ty: translateY }));
   const cursorX = 700;
   const cursorY = 500;
+  const vpRect = await page1080.evaluate(() => {
+    const r = document.getElementById('viewport').getBoundingClientRect();
+    return { left: r.left, top: r.top };
+  });
+  const vpCursorX = cursorX - vpRect.left;
+  const vpCursorY = cursorY - vpRect.top;
+
   await page1080.mouse.move(cursorX, cursorY);
   await page1080.mouse.wheel({ deltaY: -150 }); // Zoom in
   await new Promise(r => setTimeout(r, 120));
 
   const zoomedTrans = await page1080.evaluate(() => ({ scale: currentScale, tx: translateX, ty: translateY }));
-  const initialWorldX = (cursorX - initialTrans.tx) / initialTrans.scale;
-  const zoomedWorldX = (cursorX - zoomedTrans.tx) / zoomedTrans.scale;
-  const initialWorldY = (cursorY - initialTrans.ty) / initialTrans.scale;
-  const zoomedWorldY = (cursorY - zoomedTrans.ty) / zoomedTrans.scale;
+  const initialWorldX = (vpCursorX - initialTrans.tx) / initialTrans.scale;
+  const zoomedWorldX = (vpCursorX - zoomedTrans.tx) / zoomedTrans.scale;
+  const initialWorldY = (vpCursorY - initialTrans.ty) / initialTrans.scale;
+  const zoomedWorldY = (vpCursorY - zoomedTrans.ty) / zoomedTrans.scale;
   const anchorErrX = Math.abs(initialWorldX - zoomedWorldX);
   const anchorErrY = Math.abs(initialWorldY - zoomedWorldY);
   const zoomAnchoredPass = (anchorErrX < 0.01 && anchorErrY < 0.01 && zoomedTrans.scale > initialTrans.scale);
@@ -246,25 +253,30 @@ async function runTests() {
   await saveScreenshot(pageIphone, 'mobile_iphone_header_responsive.png');
 
   // 3.2 Touch Drag Pan & Pinch Zoom without gesture hijacking
-  const beforeTouchPan = await pageIphone.evaluate(() => ({ tx: translateX, ty: translateY }));
-  
-  // Touch Drag Pan
-  await pageIphone.touchscreen.tap(200, 400); // clear any focus
   const touchStart = { x: 200, y: 500 };
   const touchMove = { x: 200, y: 350 }; // Pan upwards by 150px
+  const beforeTouchPan = await pageIphone.evaluate(() => ({ tx: translateX, ty: translateY }));
   
   await pageIphone.evaluate((ts, tm) => {
     const v = document.getElementById('viewport');
+    const t1 = new Touch({ identifier: 0, target: v, clientX: ts.x, clientY: ts.y, pageX: ts.x, pageY: ts.y });
     v.dispatchEvent(new TouchEvent('touchstart', {
-      touches: [{ clientX: ts.x, clientY: ts.y, identifier: 0, target: v }],
+      touches: [t1],
+      targetTouches: [t1],
+      changedTouches: [t1],
       bubbles: true, cancelable: true
     }));
+    const t2 = new Touch({ identifier: 0, target: v, clientX: tm.x, clientY: tm.y, pageX: tm.x, pageY: tm.y });
     v.dispatchEvent(new TouchEvent('touchmove', {
-      touches: [{ clientX: tm.x, clientY: tm.y, identifier: 0, target: v }],
+      touches: [t2],
+      targetTouches: [t2],
+      changedTouches: [t2],
       bubbles: true, cancelable: true
     }));
     v.dispatchEvent(new TouchEvent('touchend', {
       touches: [],
+      targetTouches: [],
+      changedTouches: [t2],
       bubbles: true, cancelable: true
     }));
   }, touchStart, touchMove);
@@ -282,22 +294,26 @@ async function runTests() {
   await pageIphone.evaluate(() => {
     const v = document.getElementById('viewport');
     // Simulate 2 fingers spreading apart from dist=100 to dist=200
+    const p1 = new Touch({ clientX: 140, clientY: 400, identifier: 0, target: v, pageX: 140, pageY: 400 });
+    const p2 = new Touch({ clientX: 240, clientY: 400, identifier: 1, target: v, pageX: 240, pageY: 400 });
     v.dispatchEvent(new TouchEvent('touchstart', {
-      touches: [
-        { clientX: 140, clientY: 400, identifier: 0, target: v },
-        { clientX: 240, clientY: 400, identifier: 1, target: v }
-      ],
+      touches: [p1, p2],
+      targetTouches: [p1, p2],
+      changedTouches: [p1, p2],
       bubbles: true, cancelable: true
     }));
+    const p3 = new Touch({ clientX: 90, clientY: 400, identifier: 0, target: v, pageX: 90, pageY: 400 });
+    const p4 = new Touch({ clientX: 290, clientY: 400, identifier: 1, target: v, pageX: 290, pageY: 400 });
     v.dispatchEvent(new TouchEvent('touchmove', {
-      touches: [
-        { clientX: 90, clientY: 400, identifier: 0, target: v },
-        { clientX: 290, clientY: 400, identifier: 1, target: v }
-      ],
+      touches: [p3, p4],
+      targetTouches: [p3, p4],
+      changedTouches: [p3, p4],
       bubbles: true, cancelable: true
     }));
     v.dispatchEvent(new TouchEvent('touchend', {
       touches: [],
+      targetTouches: [],
+      changedTouches: [p3, p4],
       bubbles: true, cancelable: true
     }));
   });

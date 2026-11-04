@@ -72,7 +72,7 @@ window.FAMILY_DATA = {
       "matched_mothers": 25,
       "matched_spouses": 70,
       "branch_counts": {
-        "K34": 0,
+        "K34": 37,
         "K01-K15": 829,
         "K16-K33": 377,
         "K35-K46": 404,
@@ -50066,7 +50066,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع حسن وعباس آل خميس",
       "sub_branch": "K16-K33",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K16-K33"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -50077,7 +50079,7 @@ window.FAMILY_DATA = {
       "_given": "أهدية",
       "_father": "",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_1629",
@@ -50099,7 +50101,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع حسن وعباس آل خميس",
       "sub_branch": "K16-K33",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K16-K33"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -50110,7 +50114,7 @@ window.FAMILY_DATA = {
       "_given": "أمحما",
       "_father": "",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_1633",
@@ -50433,7 +50437,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع حسن وعباس آل خميس",
       "sub_branch": "K16-K33",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K16-K33"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -50444,7 +50450,7 @@ window.FAMILY_DATA = {
       "_given": "تدهم",
       "_father": "الور",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_1653",
@@ -50466,7 +50472,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع حسن وعباس آل خميس",
       "sub_branch": "K16-K33",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K16-K33"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -50477,7 +50485,7 @@ window.FAMILY_DATA = {
       "_given": "سعاد",
       "_father": "",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_1654",
@@ -50499,7 +50507,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع حسن وعباس آل خميس",
       "sub_branch": "K16-K33",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K16-K33"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -50510,7 +50520,7 @@ window.FAMILY_DATA = {
       "_given": "علي",
       "_father": "",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_1656",
@@ -62511,7 +62521,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع عبد الحميد وحسين آل خميس",
       "sub_branch": "K35-K46",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K35-K46"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -62522,7 +62534,7 @@ window.FAMILY_DATA = {
       "_given": "السشاا",
       "_father": "",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_2813",
@@ -63039,7 +63051,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع عبد الحميد وحسين آل خميس",
       "sub_branch": "K35-K46",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K35-K46"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل السادس",
@@ -63050,7 +63064,7 @@ window.FAMILY_DATA = {
       "_given": "الى",
       "_father": "رار",
       "_gf": "فيح",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_2858",
@@ -63072,7 +63086,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع عبد الحميد وحسين آل خميس",
       "sub_branch": "K35-K46",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K35-K46"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -63083,7 +63099,7 @@ window.FAMILY_DATA = {
       "_given": "عبد",
       "_father": "",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_2861",
@@ -63105,7 +63121,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع عبد الحميد وحسين آل خميس",
       "sub_branch": "K35-K46",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K35-K46"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -63116,7 +63134,7 @@ window.FAMILY_DATA = {
       "_given": "اعاء",
       "_father": "",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_2865",
@@ -63138,7 +63156,9 @@ window.FAMILY_DATA = {
       "country": "البحرين",
       "branch": "فرع عبد الحميد وحسين آل خميس",
       "sub_branch": "K35-K46",
-      "parent_ids": [],
+      "parent_ids": [
+        "ANC_ROOT_K35-K46"
+      ],
       "child_ids": [],
       "spouse_ids": [],
       "generation": "الجيل الخامس",
@@ -63149,7 +63169,7 @@ window.FAMILY_DATA = {
       "_given": "امنا",
       "_father": "",
       "_gf": "",
-      "isUnlinked": true
+      "isUnlinked": false
     },
     {
       "id": "IND_2866",
@@ -83299,7 +83319,13 @@ window.FAMILY_DATA = {
       "parent_ids": [
         "ANC_KHAMIS_ROOT"
       ],
-      "child_ids": [],
+      "child_ids": [
+        "IND_1627",
+        "IND_1629",
+        "IND_1652",
+        "IND_1653",
+        "IND_1654"
+      ],
       "spouse_ids": [],
       "status_type": "historical",
       "isUnlinked": false
@@ -83314,7 +83340,13 @@ window.FAMILY_DATA = {
       "parent_ids": [
         "ANC_KHAMIS_ROOT"
       ],
-      "child_ids": [],
+      "child_ids": [
+        "IND_2802",
+        "IND_2845",
+        "IND_2858",
+        "IND_2861",
+        "IND_2865"
+      ],
       "spouse_ids": [],
       "status_type": "historical",
       "isUnlinked": false

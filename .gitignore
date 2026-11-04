@@ -1,1 +1,5 @@
 __pycache__/
+*.pyc
+*.backup
+*.qa_backup
+.DS_Store

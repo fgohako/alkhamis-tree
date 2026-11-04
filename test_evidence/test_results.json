@@ -1,0 +1,49 @@
+{
+  "results": {
+    "pc_1080p": {
+      "master_render": "PASS",
+      "mouse_wheel_zoom_anchored": "PASS",
+      "drag_panning_smooth": "PASS",
+      "neural_kinship_hover": "PASS",
+      "drawer_and_modals": "PASS",
+      "search_autocomplete_filter": "PASS",
+      "theme_toggling": "PASS"
+    },
+    "pc_1440p": {
+      "layout_rendering": "PASS",
+      "dark_neural_kinship": "PASS"
+    },
+    "mobile_iphone": {
+      "responsive_header": "PASS",
+      "touch_drag_pan": "PASS",
+      "touch_pinch_zoom": "PASS",
+      "neural_hud_positioning": "PASS",
+      "drawer_backdrop_slidein": "PASS"
+    },
+    "mobile_android": {
+      "responsive_header": "PASS",
+      "neural_hud": "PASS",
+      "drawer_slidein": "PASS"
+    }
+  },
+  "capturedScreenshots": [
+    "pc_1080p_master_tree.png",
+    "pc_1080p_zoom_anchored.png",
+    "pc_1080p_drag_panned.png",
+    "pc_1080p_neural_trace_hover.png",
+    "pc_1080p_person_drawer_open.png",
+    "pc_1080p_modal_add_member.png",
+    "pc_1080p_search_autocomplete.png",
+    "pc_1080p_dark_theme.png",
+    "pc_1440p_master_overview.png",
+    "pc_1440p_dark_theme_kinship.png",
+    "mobile_iphone_header_responsive.png",
+    "mobile_iphone_touch_drag_pan.png",
+    "mobile_iphone_pinch_zoom.png",
+    "mobile_iphone_neural_hud.png",
+    "mobile_iphone_drawer_backdrop.png",
+    "mobile_android_header_responsive.png",
+    "mobile_android_neural_hud.png",
+    "mobile_android_drawer_open.png"
+  ]
+}
