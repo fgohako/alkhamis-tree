@@ -614,6 +614,160 @@
     </div>
   </div>
 
+  <!-- ================= EDIT FAMILY MEMBER MODAL ================= -->
+  <div id="editMemberModal" onclick="if(event.target === this) closeEditMemberModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+    <div class="border rounded-2xl shadow-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 text-right transition-all transform scale-100" style="background: var(--card-bg); border-color: var(--gold-accent);" dir="rtl">
+      
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color: var(--card-border);">
+        <div class="flex items-center gap-2">
+          <span class="text-xl">✏️</span>
+          <div>
+            <h2 class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">تعديل بيانات الفرد</h2>
+            <div class="text-[10px] text-slate-400 font-mono" id="editModalPersonSubtitle">—</div>
+          </div>
+        </div>
+        <button onclick="closeEditMemberModal()" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-slate-400 font-bold text-sm">✕</button>
+      </div>
+
+      <form id="editMemberForm" onsubmit="saveEditedMember(event)" class="space-y-3.5">
+        
+        <!-- Short Name & Full Name -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">الاسم المختصر (على المشجرة) *</label>
+            <input 
+              type="text" 
+              id="editMemberShortName" 
+              required
+              class="w-full border rounded-xl p-2.5 text-xs font-bold focus:outline-none"
+              style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">الاسم الكامل والنسب بالأرشيف</label>
+            <input 
+              type="text" 
+              id="editMemberFullName" 
+              class="w-full border rounded-xl p-2.5 text-xs focus:outline-none"
+              style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+            >
+          </div>
+        </div>
+
+        <!-- Status & Role -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">الحالة الحالية *</label>
+            <select id="editMemberStatus" onchange="onEditStatusChange()" class="w-full border rounded-xl p-2.5 text-xs font-bold focus:outline-none" style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);">
+              <option value="living">🟢 على قيد الحياة (معاصر)</option>
+              <option value="deceased">⚪ متوفى (رحمه الله)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">اللقب / الدور الأنسابي</label>
+            <input 
+              type="text" 
+              id="editMemberRole" 
+              placeholder="مثال: عميد الأسرة، وجيه، خطيب..." 
+              class="w-full border rounded-xl p-2.5 text-xs focus:outline-none"
+              style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+            >
+          </div>
+        </div>
+
+        <!-- Dates (Birth & Death) -->
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">سنة الميلاد / الحقبة</label>
+            <input 
+              type="text" 
+              id="editMemberBirth" 
+              placeholder="مثال: 1954م، 1373هـ..." 
+              class="w-full border rounded-xl p-2.5 text-xs focus:outline-none"
+              style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">سنة الوفاة (إن وجدت)</label>
+            <input 
+              type="text" 
+              id="editMemberDeath" 
+              placeholder="مثال: 2018م..." 
+              class="w-full border rounded-xl p-2.5 text-xs focus:outline-none"
+              style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+            >
+          </div>
+        </div>
+
+        <!-- Mother & Spouse -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">اسم الوالدة</label>
+            <input 
+              type="text" 
+              id="editMemberMother" 
+              placeholder="مثال: فاطمة بنت إبراهيم..." 
+              class="w-full border rounded-xl p-2.5 text-xs focus:outline-none"
+              style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+            >
+          </div>
+          <div>
+            <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">اسم الزوج / الزوجة</label>
+            <input 
+              type="text" 
+              id="editMemberSpouse" 
+              placeholder="مثال: مريم بنت أحمد..." 
+              class="w-full border rounded-xl p-2.5 text-xs focus:outline-none"
+              style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+            >
+          </div>
+        </div>
+
+        <!-- Notes / Archival Documentation -->
+        <div>
+          <label class="block text-xs font-bold mb-1" style="color: var(--text-main);">ملاحظات وتوثيق السجل</label>
+          <textarea 
+            id="editMemberNotes" 
+            rows="2" 
+            placeholder="توثيق الإضافة أو صلة القرابة ومصادر الأرشيف..." 
+            class="w-full border rounded-xl p-2.5 text-xs focus:outline-none"
+            style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+          ></textarea>
+        </div>
+
+        <!-- Action Buttons -->
+        <div class="pt-3 flex flex-col sm:flex-row gap-2">
+          <button 
+            type="submit" 
+            class="flex-1 py-2.5 rounded-xl text-white font-bold text-xs shadow-md bg-amber-700 hover:bg-amber-800 transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+          >
+            <span>💾</span>
+            <span>حفظ التعديلات</span>
+          </button>
+          <button 
+            type="button" 
+            id="editMemberResetBtn"
+            onclick="resetEditedMember(editingMemberTargetId)" 
+            class="hidden px-3.5 py-2.5 rounded-xl border text-xs font-bold text-rose-600 dark:text-rose-400 border-rose-500/30 hover:bg-rose-500/10 transition-all cursor-pointer"
+            title="استعادة البيانات الأصلية قبل التعديل"
+          >
+            <span>↺</span>
+            <span>استعادة الأصل</span>
+          </button>
+          <button 
+            type="button" 
+            onclick="closeEditMemberModal()" 
+            class="px-4 py-2.5 rounded-xl border text-xs font-bold hover:bg-black/5 dark:hover:bg-white/5 transition-all cursor-pointer"
+            style="border-color: var(--card-border); color: var(--text-main);"
+          >
+            إلغاء
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
   <!-- ================= TOAST NOTIFICATION CONTAINER ================= -->
   <div id="appToast" class="fixed top-16 left-1/2 transform -translate-x-1/2 z-50 pointer-events-none opacity-0 translate-y-[-10px] border px-4 py-2 rounded-2xl shadow-2xl text-xs font-bold flex items-center gap-2 backdrop-blur-md" style="background: var(--card-bg); border-color: var(--gold-accent); color: var(--text-main);">
     <span id="toastIcon">🎯</span>
@@ -920,17 +1074,28 @@
 
             <!-- Primary Action Buttons -->
       <div class="pt-2 flex flex-col gap-2">
-        <div class="flex gap-2">
-          <button id="drawerCenterBtn" class="flex-1 py-3 rounded-xl text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer bg-amber-700 hover:bg-amber-800 dark:bg-sky-600 dark:hover:bg-sky-700">
-            <span>🎯</span>
-            <span>تحديد الموقع على المشجرة</span>
+        <button id="drawerCenterBtn" class="w-full py-3 rounded-xl text-white font-bold text-xs transition-all shadow-md flex items-center justify-center gap-2 cursor-pointer bg-amber-700 hover:bg-amber-800 dark:bg-sky-600 dark:hover:bg-sky-700">
+          <span>🎯</span>
+          <span>تحديد الموقع على المشجرة</span>
+        </button>
+
+        <div class="grid grid-cols-3 gap-2">
+          <button onclick="openEditMemberModal(selectedNodeId)" class="py-2.5 px-2 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="تعديل بيانات الفرد الأرشيفية">
+            <span>✏️</span>
+            <span>تعديل</span>
           </button>
-          <button onclick="copyPersonData()" class="px-4 py-3 rounded-xl font-medium text-xs border transition-all flex items-center justify-center gap-1.5 hover:scale-105" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="نسخ بيانات الفرد">
-            <span>📋</span> نسخ
+          <button onclick="copyShareLink(selectedNodeId)" class="py-2.5 px-2 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="نسخ رابط المشاركة المباشر لهذا الفرد">
+            <span>🔗</span>
+            <span>مشاركة</span>
+          </button>
+          <button onclick="copyPersonData()" class="py-2.5 px-2 rounded-xl border font-medium text-xs transition-all flex items-center justify-center gap-1.5 hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="نسخ بيانات الفرد كنص">
+            <span>📋</span>
+            <span>نسخ</span>
           </button>
         </div>
+
         <div id="drawerCustomMemberActions" class="hidden flex gap-2">
-          <button onclick="deleteCustomMember(selectedNodeId)" class="flex-1 py-2 rounded-xl text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold hover:bg-rose-500/10 transition-all flex items-center justify-center gap-1.5">
+          <button onclick="deleteCustomMember(selectedNodeId)" class="flex-1 py-2 rounded-xl text-rose-600 dark:text-rose-400 border border-rose-500/30 text-xs font-bold hover:bg-rose-500/10 transition-all flex items-center justify-center gap-1.5 cursor-pointer">
             <span>🗑️</span>
             <span>حذف هذا الفرد المضاف</span>
           </button>
@@ -2079,6 +2244,41 @@
         });
       }
 
+      // 4. Custom Members in K34 Kinship Connectors
+      k34Nodes.forEach(node => {
+        if (node.isCustom) {
+          if (node.parent_ids && node.parent_ids.length > 0) {
+            const p = nodeMap.get(node.parent_ids[0]);
+            if (p) {
+              const px = p.x + p.width / 2;
+              const py = p.y + p.height;
+              const cx = node.x + (node.width || 205) / 2;
+              const cy = node.y;
+              svg += `<path d="M ${px} ${py} C ${px} ${py + 25}, ${cx} ${cy - 25}, ${cx} ${cy}" fill="none" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" data-from="${p.id}" data-to="${node.id}" />`;
+            }
+          } else if (node.spouse_ids && node.spouse_ids.length > 0) {
+            const sp = nodeMap.get(node.spouse_ids[0]);
+            if (sp) {
+              const midY = node.y + (node.height || 52) / 2;
+              const minX = Math.min(node.x, sp.x);
+              const maxX = Math.max(node.x, sp.x);
+              svg += `
+                <line x1="${minX + (sp.width || 200)}" y1="${midY}" x2="${maxX}" y2="${midY}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" />
+                <text x="${(minX + (sp.width || 200) + maxX) / 2}" y="${midY + 4}" text-anchor="middle" font-size="12">💍</text>
+              `;
+            }
+          }
+        }
+      });
+
+      let maxCanvasW = 3950;
+      let maxCanvasH = 1150;
+      k34Nodes.forEach(n => {
+        if (n.x + (n.width || 205) + 120 > maxCanvasW) maxCanvasW = n.x + (n.width || 205) + 120;
+        if (n.y + (n.height || 52) + 150 > maxCanvasH) maxCanvasH = n.y + (n.height || 52) + 150;
+      });
+      setCanvasDimensions(maxCanvasW, maxCanvasH);
+
       svgConnectors.innerHTML = svg;
     }
 
@@ -2744,7 +2944,7 @@
     });
 
     function getTargetViewForPerson(person) {
-      if (!person) return 'master';
+      if (!person) return 'k34';
       const pid = person.id || '';
       if (pid.startsWith('ANC_ADAM') || pid.startsWith('ANC_SHEETH') || pid.startsWith('ANC_IDRIS') || 
           pid.startsWith('ANC_NUH') || pid.startsWith('ANC_SAM') || pid.startsWith('ANC_HUD') || 
@@ -2753,13 +2953,14 @@
           pid.startsWith('ANC_TAGHLIB') || pid.startsWith('ANC_KHAMIS_ROOT')) {
         return 'master';
       }
-      if (pid.startsWith('k34_') || (person.chart || '').toUpperCase() === 'K34') {
-        return 'k34';
-      }
       const sub = (person.sub_branch || '').toUpperCase().trim();
       const chart = (person.chart || '').toUpperCase().trim();
       const branch = (person.branch || '').trim();
+      const branchUpper = branch.toUpperCase();
 
+      if (pid.startsWith('k34_') || chart === 'K34' || sub === 'K34' || branchUpper.includes('K34') || branch.includes('عيسى وعلي')) {
+        return 'k34';
+      }
       if (sub === 'K01-K15' || chart === 'K01-K15' || sub.includes('K01') || chart.includes('K01') || branch.includes('علي بن أحمد')) return 'K01-K15';
       if (sub === 'K16-K33' || chart === 'K16-K33' || sub.includes('K16') || chart.includes('K16') || branch.includes('حسن وعباس')) return 'K16-K33';
       if (sub === 'K35-K46' || chart === 'K35-K46' || sub.includes('K35') || chart.includes('K35') || branch.includes('عبد الحميد')) return 'K35-K46';
@@ -3176,8 +3377,11 @@
       const genBadge = document.getElementById('drawerGenBadge');
       if (genBadge) genBadge.textContent = person.generation || 'الجيل الثامن';
 
-      document.getElementById('drawerBirth').textContent = person.birth ? `${person.birth}م` : (person.dates || 'معاصر');
-      document.getElementById('drawerDeath').textContent = person.death ? `${person.death}م` : (person.status_type === 'living' ? 'على قيد الحياة' : 'متوفى');
+      const cleanBirth = (person.birth || '').trim();
+      document.getElementById('drawerBirth').textContent = cleanBirth ? (cleanBirth.endsWith('م') || cleanBirth.endsWith('هـ') ? cleanBirth : `${cleanBirth}م`) : (person.dates || 'معاصر');
+
+      const cleanDeath = (person.death || '').trim();
+      document.getElementById('drawerDeath').textContent = cleanDeath ? (cleanDeath.endsWith('م') || cleanDeath.endsWith('هـ') ? cleanDeath : `${cleanDeath}م`) : (person.status_type === 'living' ? 'على قيد الحياة' : 'متوفى');
       document.getElementById('drawerNotes').textContent = person.notes || `موثق في أرشيف عائلة آل خميس التاريخي، ص ${person.page || '—'}.`;
 
       // Photo Avatar Display
@@ -3281,11 +3485,12 @@
 
       // 2. View routing: Exact target view lookup
       const targetView = person._targetView || getTargetViewForPerson(person);
+      updateUrlParams(targetView, personId);
       const isMobile = window.innerWidth <= 768;
 
       // 3. On mobile, ensure the drawer is closed so the screen is not blocked!
       if (isMobile) {
-        closePersonDrawer();
+        closePersonDrawer(false); // don't clear selectedNodeId or URL
       } else {
         if (openDrawer) {
           if (targetView === 'classical' && person.era) {
@@ -3296,7 +3501,7 @@
             document.getElementById('drawerBackdrop').classList.remove('hidden');
           }
         } else {
-          closePersonDrawer();
+          closePersonDrawer(false);
         }
       }
 
@@ -3363,7 +3568,11 @@
       flyToPerson(person.id, { openDrawer: false });
     }
 
-    function closePersonDrawer() {
+    function closePersonDrawer(clearSelection = true) {
+      if (clearSelection) {
+        selectedNodeId = null;
+        updateUrlParams(activeView, null);
+      }
       document.getElementById('personDrawer').classList.add('translate-x-full');
       document.getElementById('unlinkedArchiveDrawer')?.classList.add('-translate-x-full');
       document.getElementById('drawerBackdrop').classList.add('hidden');
@@ -3700,11 +3909,51 @@
     });
 
     /* ==========================================================================
-       11. NAVIGATION & VIEW SWITCHING
+       11. NAVIGATION & VIEW SWITCHING & URL SHARING
        ========================================================================== */
+    function updateUrlParams(viewKey, personId = null) {
+      try {
+        const url = new URL(window.location.href);
+        if (viewKey) {
+          url.searchParams.set('v', viewKey);
+        } else {
+          url.searchParams.delete('v');
+        }
+        if (personId) {
+          url.searchParams.set('id', personId);
+        } else {
+          url.searchParams.delete('id');
+        }
+        url.searchParams.delete('view');
+        url.searchParams.delete('p');
+        url.searchParams.delete('person');
+        window.history.replaceState(null, '', url.pathname + url.search + url.hash);
+      } catch (e) {
+        console.warn('Could not update URL parameters', e);
+      }
+    }
+
+    function copyShareLink(personId = null) {
+      const pId = personId || selectedNodeId;
+      const targetView = activeView;
+      updateUrlParams(targetView, pId);
+      const shareUrl = window.location.href;
+
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareUrl).then(() => {
+          showToast('تم نسخ رابط المشاركة المباشر 🔗', '📋');
+        }).catch(() => {
+          prompt('انسخ الرابط التالي للمشاركة:', shareUrl);
+        });
+      } else {
+        prompt('انسخ الرابط التالي للمشاركة:', shareUrl);
+      }
+    }
+
     function switchView(viewKey, skipFit = false) {
       activeView = viewKey;
       document.getElementById('chartViewSelector').value = viewKey;
+      updateUrlParams(viewKey, selectedNodeId);
 
       if (viewKey === 'k34') {
         renderChartK34();
@@ -3782,12 +4031,47 @@
       (window.FAMILY_DATA.k34_nodes || []).forEach(n => byId.set(n.id, n));
 
       customFamilyMembers.forEach(custom => {
-        if (!byId.has(custom.id)) {
+        // 1. Add to individuals if not present
+        if (!window.FAMILY_DATA.individuals.some(i => i.id === custom.id)) {
           window.FAMILY_DATA.individuals.push(custom);
-          byId.set(custom.id, custom);
+        }
+        byId.set(custom.id, custom);
+
+        // 2. Check if belongs to K34 branch
+        const isK34 = (custom.branch === 'K34' || custom.branch === 'k34' || custom.sub_branch === 'K34' || custom.sub_branch === 'k34');
+        const hasK34Parent = (custom.parent_ids || []).some(pid => (window.FAMILY_DATA.k34_nodes || []).some(kn => kn.id === pid));
+        const hasK34Spouse = (custom.spouse_ids || []).some(sid => (window.FAMILY_DATA.k34_nodes || []).some(kn => kn.id === sid));
+
+        if (isK34 || hasK34Parent || hasK34Spouse) {
+          if (!window.FAMILY_DATA.k34_nodes.some(n => n.id === custom.id)) {
+            if (!custom.x || custom.x > 10000) {
+              if (custom.parent_ids && custom.parent_ids.length > 0) {
+                const p = byId.get(custom.parent_ids[0]);
+                if (p) {
+                  const sibs = p.child_ids || [custom.id];
+                  const idx = Math.max(0, sibs.indexOf(custom.id));
+                  const offset = (idx - (sibs.length - 1) / 2) * 220;
+                  custom.x = Math.max(60, (p.x || 1800) + offset);
+                  custom.y = (p.y || 700) + 125;
+                }
+              } else if (custom.spouse_ids && custom.spouse_ids.length > 0) {
+                const sp = byId.get(custom.spouse_ids[0]);
+                if (sp) {
+                  custom.x = (sp.x || 1800) + 225;
+                  custom.y = sp.y || 600;
+                }
+              } else {
+                custom.x = 1800;
+                custom.y = 950;
+              }
+              custom.width = 205;
+              custom.height = 52;
+            }
+            window.FAMILY_DATA.k34_nodes.push(custom);
+          }
         }
         
-        // Link to parents
+        // 3. Link to parents (bidirectional)
         (custom.parent_ids || []).forEach(pid => {
           const parent = byId.get(pid);
           if (parent) {
@@ -3798,7 +4082,18 @@
           }
         });
 
-        // Link to spouses
+        // 4. Link to children (bidirectional)
+        (custom.child_ids || []).forEach(cid => {
+          const child = byId.get(cid);
+          if (child) {
+            child.parent_ids = child.parent_ids || [];
+            if (!child.parent_ids.includes(custom.id)) {
+              child.parent_ids.push(custom.id);
+            }
+          }
+        });
+
+        // 5. Link to spouses (bidirectional)
         (custom.spouse_ids || []).forEach(sid => {
           const spouse = byId.get(sid);
           if (spouse) {
@@ -3825,7 +4120,26 @@
         if (relPerson) {
           contextAlert.classList.remove('hidden');
           targetNameEl.textContent = `${relPerson.short_name} (${relPerson.sub_branch || relPerson.branch || 'K34'})`;
-          document.getElementById('addMemberBranch').value = relPerson.sub_branch || relPerson.chart || 'K34';
+          
+          let relBranch = relPerson.sub_branch || relPerson.chart || relPerson.branch || 'K34';
+          if (relBranch.toUpperCase().includes('K34') || relBranch.includes('عيسى وعلي') || relPerson.id.startsWith('k34_')) {
+            relBranch = 'K34';
+          } else if (relBranch.includes('K01') || relBranch.includes('علي بن أحمد')) {
+            relBranch = 'K01-K15';
+          } else if (relBranch.includes('K16') || relBranch.includes('حسن وعباس')) {
+            relBranch = 'K16-K33';
+          } else if (relBranch.includes('K35') || relBranch.includes('عبد الحميد')) {
+            relBranch = 'K35-K46';
+          } else if (relBranch.includes('S/H') || relBranch.includes('سعودية') || relBranch.includes('أحساء')) {
+            relBranch = 'S/H';
+          } else if (relBranch.includes('Q') || relBranch.includes('عراق') || relBranch.includes('قرية')) {
+            relBranch = 'Q';
+          } else if (relBranch.includes('D') || relBranch.includes('داغر')) {
+            relBranch = 'D';
+          } else if (relBranch.includes('M') || relBranch.includes('الكايد') || relBranch.includes('مدحوب')) {
+            relBranch = 'M';
+          }
+          document.getElementById('addMemberBranch').value = relBranch;
           relationSelect.value = initialRelation;
         }
       } else {
@@ -3958,9 +4272,9 @@
           fullName = `${given} (زوج/زوجة ${relPerson.short_name})`;
           spouseIds = [relPerson.id];
         } else if (relType === 'sibling') {
-          parentIds = relPerson.parent_ids || [];
+          parentIds = [...(relPerson.parent_ids || [])];
           const fatherInName = (relPerson.short_name.split(' بن ')[1] || relPerson.short_name.split(' بنت ')[1] || '').trim();
-          shortName = fatherInName ? `${given} بن ${fatherInName}` : given;
+          shortName = fatherInName ? `${given} بن ${fatherInName}` : `${given} آل خميس`;
         } else if (relType === 'parent') {
           shortName = given;
         }
@@ -3984,8 +4298,8 @@
         child_ids: (relType === 'parent' && relPerson) ? [relPerson.id] : [],
         spouse_ids: spouseIds,
         isCustom: true,
-        x: relPerson ? (relPerson.x + 40) : 12000,
-        y: relPerson ? (relPerson.y + 120) : 2500,
+        x: relPerson ? (relPerson.x + 40) : 1800,
+        y: relPerson ? (relPerson.y + 120) : 950,
         width: 205,
         height: 52
       };
@@ -4002,15 +4316,20 @@
       closeAddMemberModal();
       showToast(`تمت إضافة "${shortName}" إلى المشجرة بنجاح 🌿`, '✨');
 
-      // Refresh current view & fly to newly added person
-      if (activeView === 'k34') renderChartK34();
-      else if (activeView === 'master') renderMasterTreeToAdam();
-      else if (activeView === 'registry') renderRegistryTable();
-      else renderSubBranchView(activeView);
+      // Determine target view and navigate directly to newly added person
+      const targetView = getTargetViewForPerson(newMember);
+      if (activeView !== targetView) {
+        switchView(targetView, true);
+      } else {
+        if (targetView === 'k34') renderChartK34();
+        else if (targetView === 'master') renderMasterTreeToAdam();
+        else if (targetView === 'registry') renderRegistryTable();
+        else renderSubBranchView(targetView);
+      }
 
       setTimeout(() => {
         flyToPerson(newId, { openDrawer: true });
-      }, 300);
+      }, 350);
     }
 
     function deleteCustomMember(personId) {
@@ -4019,10 +4338,22 @@
       customFamilyMembers = customFamilyMembers.filter(m => m.id !== personId);
       localStorage.setItem('khamis_custom_family_members', JSON.stringify(customFamilyMembers));
 
-      // Remove from live array
+      // Remove from live arrays
       if (window.FAMILY_DATA?.individuals) {
         window.FAMILY_DATA.individuals = window.FAMILY_DATA.individuals.filter(i => i.id !== personId);
       }
+      if (window.FAMILY_DATA?.k34_nodes) {
+        window.FAMILY_DATA.k34_nodes = window.FAMILY_DATA.k34_nodes.filter(i => i.id !== personId);
+      }
+
+      // Unlink from relatives
+      const allPeople = [...(window.FAMILY_DATA?.individuals || []), ...(window.FAMILY_DATA?.k34_nodes || [])];
+      allPeople.forEach(p => {
+        if (p.child_ids) p.child_ids = p.child_ids.filter(cid => cid !== personId);
+        if (p.parent_ids) p.parent_ids = p.parent_ids.filter(pid => pid !== personId);
+        if (p.spouse_ids) p.spouse_ids = p.spouse_ids.filter(sid => sid !== personId);
+      });
+
       window._personMap = null;
       cachedRegistryList = null;
 
@@ -4033,6 +4364,192 @@
       else if (activeView === 'master') renderMasterTreeToAdam();
       else if (activeView === 'registry') renderRegistryTable();
       else renderSubBranchView(activeView);
+    }
+
+    /* ==========================================================================
+       EDIT FAMILY MEMBER ENGINE & OVERLAY PERSISTENCE
+       ========================================================================== */
+    let editedFamilyMembers = {};
+    let editingMemberTargetId = null;
+
+    function initEditedMembers() {
+      try {
+        const stored = localStorage.getItem('khamis_edited_members');
+        if (stored) {
+          editedFamilyMembers = JSON.parse(stored);
+          mergeEditedMembersIntoDataset();
+        }
+      } catch (e) {
+        console.error('Error loading edited family members:', e);
+      }
+    }
+
+    function mergeEditedMembersIntoDataset() {
+      if (!window.FAMILY_DATA) return;
+      const allLists = [
+        window.FAMILY_DATA.individuals || [],
+        window.FAMILY_DATA.k34_nodes || [],
+        window.FAMILY_DATA.classical_ancestors || []
+      ];
+
+      for (const [id, edits] of Object.entries(editedFamilyMembers)) {
+        allLists.forEach(list => {
+          const person = list.find(p => p.id === id);
+          if (person) {
+            if (!person._original) {
+              person._original = {
+                short_name: person.short_name,
+                name: person.name,
+                status_type: person.status_type,
+                status: person.status,
+                birth: person.birth,
+                death: person.death,
+                dates: person.dates,
+                role: person.role,
+                mother: person.mother,
+                spouse: person.spouse,
+                notes: person.notes
+              };
+            }
+            if (edits.short_name !== undefined) person.short_name = edits.short_name;
+            if (edits.name !== undefined) person.name = edits.name;
+            if (edits.status_type !== undefined) person.status_type = edits.status_type;
+            if (edits.status !== undefined) person.status = edits.status;
+            if (edits.birth !== undefined) person.birth = edits.birth;
+            if (edits.death !== undefined) person.death = edits.death;
+            if (edits.dates !== undefined) person.dates = edits.dates;
+            if (edits.role !== undefined) person.role = edits.role;
+            if (edits.mother !== undefined) person.mother = edits.mother;
+            if (edits.spouse !== undefined) person.spouse = edits.spouse;
+            if (edits.notes !== undefined) person.notes = edits.notes;
+          }
+        });
+      }
+    }
+
+    function openEditMemberModal(personId) {
+      if (!personId) return;
+      const person = findPersonById(personId);
+      if (!person) return;
+
+      editingMemberTargetId = personId;
+      document.getElementById('editModalPersonSubtitle').textContent = `${person.short_name} (${person.sub_branch || person.chart || 'K34'})`;
+      document.getElementById('editMemberShortName').value = person.short_name || '';
+      document.getElementById('editMemberFullName').value = person.name || '';
+      
+      const st = person.status_type || (person.status?.includes('حياة') ? 'living' : 'deceased');
+      document.getElementById('editMemberStatus').value = st;
+      document.getElementById('editMemberRole').value = person.role || '';
+      document.getElementById('editMemberBirth').value = person.birth || '';
+      document.getElementById('editMemberDeath').value = person.death || '';
+      document.getElementById('editMemberMother').value = person.mother || '';
+      document.getElementById('editMemberSpouse').value = person.spouse || '';
+      document.getElementById('editMemberNotes').value = person.notes || '';
+
+      const hasEdits = Boolean(editedFamilyMembers && editedFamilyMembers[personId]);
+      const resetBtn = document.getElementById('editMemberResetBtn');
+      if (resetBtn) {
+        if (hasEdits) resetBtn.classList.remove('hidden');
+        else resetBtn.classList.add('hidden');
+      }
+
+      document.getElementById('editMemberModal').classList.remove('hidden');
+      document.getElementById('editMemberShortName').focus();
+    }
+
+    function closeEditMemberModal() {
+      document.getElementById('editMemberModal').classList.add('hidden');
+      editingMemberTargetId = null;
+    }
+
+    function onEditStatusChange() {
+      const st = document.getElementById('editMemberStatus').value;
+      const deathInput = document.getElementById('editMemberDeath');
+      if (st === 'living') {
+        deathInput.placeholder = 'على قيد الحياة';
+      } else {
+        deathInput.placeholder = 'مثال: 2018م...';
+      }
+    }
+
+    function saveEditedMember(e) {
+      e.preventDefault();
+      if (!editingMemberTargetId) return;
+      const person = findPersonById(editingMemberTargetId);
+      if (!person) return;
+
+      const shortName = document.getElementById('editMemberShortName').value.trim();
+      const fullName = document.getElementById('editMemberFullName').value.trim();
+      const statusType = document.getElementById('editMemberStatus').value;
+      const birth = document.getElementById('editMemberBirth').value.trim();
+      const death = document.getElementById('editMemberDeath').value.trim();
+      const role = document.getElementById('editMemberRole').value.trim();
+      const mother = document.getElementById('editMemberMother').value.trim();
+      const spouse = document.getElementById('editMemberSpouse').value.trim();
+      const notes = document.getElementById('editMemberNotes').value.trim();
+
+      const isLiving = (statusType === 'living');
+      const status = isLiving ? 'على قيد الحياة' : 'متوفى';
+      let dates = '';
+      if (birth && death) dates = `${birth} - ${death}`;
+      else if (birth && isLiving) dates = `${birth} - معاصر`;
+      else if (birth) dates = birth;
+      else if (isLiving) dates = 'معاصر';
+      else if (death) dates = `توفي ${death}`;
+
+      editedFamilyMembers[editingMemberTargetId] = {
+        short_name: shortName || person.short_name,
+        name: fullName || person.name,
+        status_type: statusType,
+        status: status,
+        birth: birth,
+        death: death,
+        dates: dates,
+        role: role,
+        mother: mother,
+        spouse: spouse,
+        notes: notes
+      };
+
+      localStorage.setItem('khamis_edited_members', JSON.stringify(editedFamilyMembers));
+      mergeEditedMembersIntoDataset();
+      window._personMap = null;
+      cachedRegistryList = null;
+
+      const targetId = editingMemberTargetId;
+      closeEditMemberModal();
+      showToast(`تم حفظ وتحديث بيانات "${shortName || person.short_name}" بنجاح ✏️`, '✨');
+
+      if (activeView === 'k34') renderChartK34();
+      else if (activeView === 'master') renderMasterTreeToAdam();
+      else if (activeView === 'registry') renderRegistryTable();
+      else renderSubBranchView(activeView);
+
+      populatePersonDrawer(findPersonById(targetId));
+    }
+
+    function resetEditedMember(personId) {
+      if (!personId || !editedFamilyMembers[personId]) return;
+      if (!confirm('هل تريد استعادة البيانات الأصلية لهذا الفرد من الأرشيف؟')) return;
+      delete editedFamilyMembers[personId];
+      localStorage.setItem('khamis_edited_members', JSON.stringify(editedFamilyMembers));
+
+      const person = findPersonById(personId);
+      if (person && person._original) {
+        Object.assign(person, person._original);
+      }
+      window._personMap = null;
+      cachedRegistryList = null;
+
+      closeEditMemberModal();
+      showToast('تم استعادة البيانات الأصلية بنجاح ↺', '✨');
+
+      if (activeView === 'k34') renderChartK34();
+      else if (activeView === 'master') renderMasterTreeToAdam();
+      else if (activeView === 'registry') renderRegistryTable();
+      else renderSubBranchView(activeView);
+
+      populatePersonDrawer(findPersonById(personId));
     }
 
     function exportCustomData() {
@@ -4111,21 +4628,36 @@
     }
 
 
-    // Initialize application on load
-    window.addEventListener('DOMContentLoaded', () => {
-            initCustomMembers();
+    // Initialize application on load with full URL State & Deeplinking
+    function bootApplication() {
+      if (!window.FAMILY_DATA || !window.FAMILY_DATA.individuals) {
+        setTimeout(bootApplication, 60);
+        return;
+      }
+      initCustomMembers();
+      initEditedMembers();
       applyTheme(currentTheme);
 
-      // Check URL parameters
+      // Parse URL parameters (supports ?v=... and ?id=... as well as legacy view=... and p=...)
       const urlParams = new URLSearchParams(window.location.search);
-      const initialView = urlParams.get('view') || 'master';
+      const urlPersonId = urlParams.get('id') || urlParams.get('p') || urlParams.get('person');
+      const urlView = urlParams.get('v') || urlParams.get('view') || urlParams.get('branch');
 
-      if (window.FAMILY_DATA) {
-        switchView(initialView);
+      if (urlPersonId) {
+        const person = findPersonById(urlPersonId);
+        const targetView = urlView || (person ? (person._targetView || getTargetViewForPerson(person)) : 'k34');
+        switchView(targetView, true);
+        setTimeout(() => {
+          flyToPerson(urlPersonId, { openDrawer: true });
+        }, 350);
+      } else if (urlView) {
+        switchView(urlView);
       } else {
-        setTimeout(() => switchView(initialView), 200);
+        switchView('k34');
       }
-    });
+    }
+
+    window.addEventListener('DOMContentLoaded', bootApplication);
   </script>
 
   <!-- Floating Neural Kinship HUD (Interactive Relationship Explorer) -->
