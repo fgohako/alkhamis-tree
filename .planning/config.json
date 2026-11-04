@@ -1,0 +1,11 @@
+{
+  "project_name": "al-khamis-family-tree",
+  "version": "1.0.0",
+  "mode": "interactive",
+  "auto_commit": false,
+  "language": "ar",
+  "workflow": {
+    "compact_content": true
+  }
+}
+
