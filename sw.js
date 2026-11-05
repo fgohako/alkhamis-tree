@@ -1,8 +1,9 @@
-const CACHE_NAME = 'khamis-tree-pwa-v11';
+const CACHE_NAME = 'khamis-tree-pwa-v12';
 const ASSETS_TO_CACHE = [
   './',
   './index.html',
   './manifest.json',
+  './public/logo.svg',
   './public/family_data.js?v=6.1.0',
   './public/icon-192.png',
   './public/icon-512.png'
@@ -12,7 +13,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('[ServiceWorker v11] Caching app shell');
+      console.log('[ServiceWorker v12] Caching app shell');
       return cache.addAll(ASSETS_TO_CACHE).catch(err => console.warn('Cache addAll warning:', err));
     })
   );
