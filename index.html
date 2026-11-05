@@ -3822,7 +3822,8 @@
     function getPersonKinship(person) {
       const allPeople = [
         ...(window.FAMILY_DATA?.k34_nodes || []),
-        ...(window.FAMILY_DATA?.individuals || [])
+        ...(window.FAMILY_DATA?.individuals || []),
+        ...(window.FAMILY_DATA?.classical_ancestors || [])
       ];
       const byId = new Map(allPeople.map(p => [p.id, p]));
 
@@ -5702,7 +5703,11 @@
         return;
       }
 
-      const allInds = [...(window.FAMILY_DATA?.individuals || []), ...(window.FAMILY_DATA?.k34_nodes || [])];
+      const allInds = [
+        ...(window.FAMILY_DATA?.individuals || []),
+        ...(window.FAMILY_DATA?.k34_nodes || []),
+        ...(window.FAMILY_DATA?.classical_ancestors || [])
+      ];
       const byId = new Map(allInds.map(i => [i.id, i]));
 
       // Breadth-First Search (BFS) for shortest path
@@ -5898,7 +5903,11 @@
       const modal = document.getElementById('dataDiagnosticsModal');
       if (!modal) return;
 
-      const allInds = [...(window.FAMILY_DATA?.individuals || []), ...(window.FAMILY_DATA?.k34_nodes || [])];
+      const allInds = [
+        ...(window.FAMILY_DATA?.individuals || []),
+        ...(window.FAMILY_DATA?.k34_nodes || []),
+        ...(window.FAMILY_DATA?.classical_ancestors || [])
+      ];
       const byId = new Map(allInds.map(i => [i.id, i]));
 
       let brokenLinks = 0;

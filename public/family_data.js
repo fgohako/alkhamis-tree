@@ -1,7 +1,7 @@
 window.FAMILY_DATA = {
   "metadata": {
     "title": "مشجرة عائلة آل خميس الكبرى — قاعدة البيانات الموثقة الشاملة",
-    "total_individuals": 2540,
+    "total_individuals": 2541,
     "classical_ancestors_count": 37,
     "k34_nodes_count": 39,
     "branches": [
@@ -1192,6 +1192,7 @@ window.FAMILY_DATA = {
         "T02"
       ],
       "child_ids": [
+        "ANC_KHAMIS_ROOT",
         "k34_ali_khamis_1819"
       ],
       "spouse_ids": []
@@ -83273,6 +83274,34 @@ window.FAMILY_DATA = {
       "isAncestor": true,
       "width": 205,
       "height": 50,
+      "isUnlinked": false
+    },
+    {
+      "id": "ANC_KHAMIS_ROOT",
+      "name": "علي بن خميس بن أحمد آل خميس (1819-1896م)",
+      "short_name": "علي بن خميس",
+      "title": "الجد الجامع ومؤسس الأسرة بالسنابس وسترة",
+      "generation": "الجيل الأول",
+      "sub_branch": "آل خميس",
+      "era": "1819 - 1896م",
+      "dates": "1819 - 1896م",
+      "parent_ids": [
+        "T01"
+      ],
+      "child_ids": [
+        "ANC_ROOT_K01-K15",
+        "ANC_ROOT_K16-K33",
+        "k34_ali_khamis_1819",
+        "ANC_ROOT_K35-K46",
+        "ANC_ROOT_Q",
+        "ANC_ROOT_S_H",
+        "ANC_ROOT_D",
+        "ANC_ROOT_M"
+      ],
+      "spouse_ids": [],
+      "status": "متوفى (1896م)",
+      "status_type": "deceased",
+      "notes": "الجد الجامع لكافة فروع آل خميس، ومؤسس الأسرة في السنابس وسترة.",
       "isUnlinked": false
     },
     {
