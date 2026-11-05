@@ -5,6 +5,47 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <title>مشجرة عائلة آل خميس الكبرى — الشجرة الأنسابية التاريخية الجامعة من آدم إلى اليوم</title>
   
+  <!-- Primary Meta Tags & SEO -->
+  <meta name="description" content="مشجرة عائلة آل خميس الكبرى — المشجرة الأنسابية التفاعلية الموثقة والشاملة من آدم عليه السلام إلى اليوم، مستخلصة من الأرشيف التاريخي 461 صفحة بالبحرين والخليج والعراق.">
+  <meta name="keywords" content="مشجرة آل خميس, عائلة آل خميس, أنساب آل خميس, السنابس, البحرين, أوال, تاريخ آل خميس, نسب عائلة آل خميس">
+  <meta name="author" content="أرشيف عائلة آل خميس التاريخي">
+  <meta name="robots" content="index, follow">
+  <link rel="canonical" href="https://fgohako.github.io/alkhamis-tree/">
+
+  <!-- Open Graph / Facebook / WhatsApp Preview -->
+  <meta property="og:type" content="website">
+  <meta property="og:url" content="https://fgohako.github.io/alkhamis-tree/">
+  <meta property="og:title" content="مشجرة عائلة آل خميس الكبرى — الشجرة الأنسابية الجامعة">
+  <meta property="og:description" content="المشجرة الأنسابية التفاعلية الشاملة والموثقة لعائلة آل خميس من آدم عليه السلام إلى اليوم، موثقة من الأرشيف التاريخي 461 صفحة.">
+  <meta property="og:image" content="public/icon-512.png">
+  <meta property="og:image:width" content="512">
+  <meta property="og:image:height" content="512">
+  <meta property="og:locale" content="ar_BH">
+  <meta property="og:site_name" content="مشجرة عائلة آل خميس الكبرى">
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:url" content="https://fgohako.github.io/alkhamis-tree/">
+  <meta name="twitter:title" content="مشجرة عائلة آل خميس الكبرى">
+  <meta name="twitter:description" content="المشجرة الأنسابية التفاعلية الشاملة والموثقة لعائلة آل خميس من آدم عليه السلام إلى اليوم.">
+  <meta name="twitter:image" content="public/icon-512.png">
+
+  <!-- JSON-LD Structured Data Schema -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Dataset",
+    "name": "مشجرة عائلة آل خميس الكبرى الأنسابية",
+    "description": "قاعدة البيانات الأنسابية الموثقة لعائلة آل خميس التاريخية بالبحرين والسعودية والعراق، تضم أكثر من 2,500 فرد موثق بالاسم وسلاسل البنوة من آدم إلى العصر المعاصر.",
+    "url": "https://fgohako.github.io/alkhamis-tree/",
+    "inLanguage": "ar",
+    "creator": {
+      "@type": "Organization",
+      "name": "أرشيف عائلة آل خميس التاريخي"
+    }
+  }
+  </script>
+  
   <!-- PWA Meta & Manifest -->
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#fcfbf7">
@@ -424,8 +465,39 @@
 </head>
 <body class="h-full flex flex-col font-sans select-none overflow-x-hidden antialiased" style="background-color: var(--app-bg); color: var(--text-main);">
 
+  <!-- Noscript Fallback for Users without JS -->
+  <noscript>
+    <div class="fixed inset-0 z-50 bg-amber-50 text-amber-950 p-8 flex flex-col items-center justify-center text-center font-arabic" dir="rtl">
+      <div class="text-4xl mb-4">📜</div>
+      <h1 class="text-xl font-bold mb-2 font-amiri">مشجرة عائلة آل خميس الكبرى التاريخية</h1>
+      <p class="text-sm max-w-md">تتطلب هذه المشجرة التفاعلية تفعيل جافا سكريبت (JavaScript) في متصفحك لعرض الرسوم البيانية والأنساب المتصلة.</p>
+    </div>
+  </noscript>
+
+  <!-- Branded Heirloom Loading Splash Screen -->
+  <div id="appLoadingSplash" class="fixed inset-0 z-[100] flex flex-col items-center justify-center transition-opacity duration-500 pointer-events-auto" style="background-color: var(--app-bg); color: var(--text-main);" dir="rtl">
+    <div class="flex flex-col items-center max-w-sm px-6 text-center animate-fade-in">
+      <div class="w-16 h-16 rounded-2xl bg-gradient-to-tr from-amber-700 via-amber-800 to-amber-600 flex items-center justify-center text-white shadow-2xl text-2xl border-2 border-amber-400/50 mb-4 animate-pulse">
+        🌳
+      </div>
+      <h2 class="font-bold text-lg font-amiri tracking-wide text-amber-800 dark:text-amber-300 mb-1">
+        مشجرة عائلة آل خميس الكبرى
+      </h2>
+      <p class="text-xs text-slate-500 dark:text-slate-400 font-sans mb-5">
+        استحضار الأرشيف الأنسابي التاريخي الشامل (٤٦١ صفحة)...
+      </p>
+      <!-- Progress Bar -->
+      <div class="w-48 h-1.5 rounded-full overflow-hidden bg-amber-500/20 border border-amber-500/30">
+        <div id="splashProgressBar" class="h-full bg-gradient-to-r from-amber-600 to-amber-400 rounded-full w-2/3 animate-pulse"></div>
+      </div>
+      <span class="text-[10px] font-mono text-amber-600 dark:text-amber-400 mt-2 font-bold" id="splashStatusText">
+        تحميل الأنساب والروابط العائلية...
+      </span>
+    </div>
+  </div>
+
   <!-- ================= TOP APPLICATION HEADER ================= -->
-  <header class="border-b px-2 sm:px-6 py-1 sm:py-1.5 z-40 flex flex-wrap md:flex-nowrap items-center justify-between gap-1.5 sm:gap-2 shadow-md backdrop-blur-md" style="background: var(--header-bg); border-color: var(--header-border);">
+  <header role="banner" class="border-b px-2 sm:px-6 py-1 sm:py-1.5 z-40 flex flex-wrap md:flex-nowrap items-center justify-between gap-1.5 sm:gap-2 shadow-md backdrop-blur-md" style="background: var(--header-bg); border-color: var(--header-border);">
     
     <!-- Brand / Title -->
     <div class="flex items-center gap-2 sm:gap-2.5 shrink-0 cursor-pointer" onclick="switchView('master')">
@@ -630,7 +702,7 @@
   
   <!-- ================= UNLINKED ARCHIVE RECORDS DRAWER ================= -->
   <aside 
-    id="unlinkedArchiveDrawer" 
+    id="unlinkedArchiveDrawer" role="dialog" aria-modal="true" aria-labelledby="unlinkedArchiveTitle" 
     class="fixed top-0 left-0 bottom-0 z-50 w-80 sm:w-96 shadow-2xl transition-transform duration-300 transform -translate-x-full border-r flex flex-col"
     style="background: var(--card-bg); border-color: var(--card-border);"
     dir="rtl"
@@ -640,7 +712,7 @@
       <div class="flex items-center gap-2">
         <span class="text-xl">📂</span>
         <div>
-          <h3 class="font-bold text-sm font-amiri text-amber-800 dark:text-amber-400">أفراد قيد التوثيق (غير مرتبطين)</h3>
+          <h3 id="unlinkedArchiveTitle" class="font-bold text-sm font-amiri text-amber-800 dark:text-amber-400">أفراد قيد التوثيق (غير مرتبطين)</h3>
           <p class="text-[10px] text-slate-400" id="unlinkedCountLabel">قيود مؤرشفة لم يتم ربطها بفرع</p>
         </div>
       </div>
@@ -666,7 +738,7 @@
   </aside>
 
   <!-- ================= ADD NEW FAMILY MEMBER MODAL ================= -->
-  <div id="addMemberModal" onclick="if(event.target === this) closeAddMemberModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+  <div id="addMemberModal" role="dialog" aria-modal="true" aria-labelledby="addModalTitle" onclick="if(event.target === this) closeAddMemberModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
     <div class="border rounded-2xl shadow-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 text-right transition-all transform scale-100" style="background: var(--card-bg); border-color: var(--gold-accent);" dir="rtl">
       
       <!-- Modal Header -->
@@ -802,7 +874,7 @@
   </div>
 
   <!-- ================= EDIT FAMILY MEMBER MODAL ================= -->
-  <div id="editMemberModal" onclick="if(event.target === this) closeEditMemberModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+  <div id="editMemberModal" role="dialog" aria-modal="true" aria-labelledby="editModalTitle" onclick="if(event.target === this) closeEditMemberModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
     <div class="border rounded-2xl shadow-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 text-right transition-all transform scale-100" style="background: var(--card-bg); border-color: var(--gold-accent);" dir="rtl">
       
       <!-- Modal Header -->
@@ -810,7 +882,7 @@
         <div class="flex items-center gap-2">
           <span class="text-xl">✏️</span>
           <div>
-            <h2 class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">تعديل بيانات الفرد</h2>
+            <h2 id="editModalTitle" class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">تعديل بيانات الفرد</h2>
             <div class="text-[10px] text-slate-400 font-mono" id="editModalPersonSubtitle">—</div>
           </div>
         </div>
@@ -1011,7 +1083,7 @@
   </div>
 
   <!-- ================= PUBLISH & CLOUD SYNC MODAL ================= -->
-  <div id="publishModal" onclick="if(event.target === this) closePublishModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+  <div id="publishModal" role="dialog" aria-modal="true" aria-labelledby="publishModalTitle" onclick="if(event.target === this) closePublishModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity">
     <div class="border rounded-2xl shadow-2xl max-w-lg w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 text-right transition-all transform scale-100" style="background: var(--card-bg); border-color: var(--gold-accent);" dir="rtl">
       
       <!-- Modal Header -->
@@ -1019,7 +1091,7 @@
         <div class="flex items-center gap-2">
           <span class="text-xl">🚀</span>
           <div>
-            <h3 class="text-sm font-bold font-arabic" style="color: var(--text-main);">نشر ومزامنة بيانات المشجرة</h3>
+            <h3 id="publishModalTitle" class="text-sm font-bold font-arabic" style="color: var(--text-main);">نشر ومزامنة بيانات المشجرة</h3>
             <p class="text-[10px]" style="color: var(--text-muted);">مشاركة التعديلات فوراً مع العائلة أو نشرها رسمياً للسيرفر</p>
           </div>
         </div>
@@ -1172,7 +1244,7 @@
   </div>
 
   <!-- ================= MAIN VIEWPORT / CANVAS (STRICT LTR CARTESIAN COORDINATES) ================= -->
-  <main class="flex-1 relative overflow-hidden touch-pan-zoom cursor-grab active:cursor-grabbing" id="viewport" dir="ltr" style="background-color: var(--canvas-bg);">
+  <main role="main" aria-label="رقعة المشجرة الأنسابية التفاعلية" class="flex-1 relative overflow-hidden touch-pan-zoom cursor-grab active:cursor-grabbing" id="viewport" dir="ltr" style="background-color: var(--canvas-bg);">
     
     <!-- Archival Top Header Label -->
     <div class="absolute top-4 right-4 z-20 pointer-events-none flex flex-col gap-1 text-right" dir="rtl">
@@ -1352,7 +1424,7 @@
   </main>
 
   <!-- ================= PERSON DETAILS SLIDE-OVER DRAWER ================= -->
-  <aside id="personDrawer" class="fixed inset-y-0 right-0 w-full sm:w-[440px] border-l shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out flex flex-col text-right backdrop-blur-xl" dir="rtl" style="background: var(--header-bg); border-color: var(--header-border);">
+  <aside id="personDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle" class="fixed inset-y-0 right-0 w-full sm:w-[440px] border-l shadow-2xl z-50 transform translate-x-full transition-transform duration-300 ease-out flex flex-col text-right backdrop-blur-xl" dir="rtl" style="background: var(--header-bg); border-color: var(--header-border);">
     
     <!-- Drawer Header -->
     <div class="p-4 sm:p-5 border-b flex items-center justify-between gap-3" style="border-color: var(--header-border);">
@@ -1553,13 +1625,13 @@
 
   
   <!-- ================= 1. KINSHIP CALCULATOR MODAL ================= -->
-  <div id="kinshipCalculatorModal" onclick="if(event.target === this) closeKinshipModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
+  <div id="kinshipCalculatorModal" role="dialog" aria-modal="true" aria-labelledby="kinshipModalTitle" onclick="if(event.target === this) closeKinshipModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
     <div class="border rounded-2xl shadow-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 text-right transition-all" style="background: var(--card-bg); border-color: var(--gold-accent);">
       <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color: var(--card-border);">
         <div class="flex items-center gap-2">
           <span class="text-2xl">🤝</span>
           <div>
-            <h2 class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">حاسبة صلة القرابة والنسب العائلي</h2>
+            <h2 id="kinshipModalTitle" class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">حاسبة صلة القرابة والنسب العائلي</h2>
             <p class="text-[10px]" style="color: var(--text-muted);">اكتشاف صلة القرابة والجد المشترك والمسار الأنسابي بين أي فردين</p>
           </div>
         </div>
@@ -1621,13 +1693,13 @@
   </div>
 
   <!-- ================= 2. HERITAGE STATISTICS & ANALYTICS MODAL ================= -->
-  <div id="statsModal" onclick="if(event.target === this) closeStatsModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
+  <div id="statsModal" role="dialog" aria-modal="true" aria-labelledby="statsModalTitle" onclick="if(event.target === this) closeStatsModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
     <div class="border rounded-2xl shadow-2xl max-w-2xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 text-right transition-all" style="background: var(--card-bg); border-color: var(--gold-accent);">
       <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color: var(--card-border);">
         <div class="flex items-center gap-2">
           <span class="text-2xl">📊</span>
           <div>
-            <h2 class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">إحصائيات وتحليلات مشجرة آل خميس الكبرى</h2>
+            <h2 id="statsModalTitle" class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">إحصائيات وتحليلات مشجرة آل خميس الكبرى</h2>
             <p class="text-[10px]" style="color: var(--text-muted);">قراءة شاملة في الأرقام والأجيال والفروع وتكرار الأسماء الأنسابية</p>
           </div>
         </div>
@@ -1674,13 +1746,13 @@
   </div>
 
   <!-- ================= 3. DATA INTEGRITY & DIAGNOSTICS MODAL ================= -->
-  <div id="dataDiagnosticsModal" onclick="if(event.target === this) closeDiagnosticsModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
+  <div id="dataDiagnosticsModal" role="dialog" aria-modal="true" aria-labelledby="diagnosticsModalTitle" onclick="if(event.target === this) closeDiagnosticsModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
     <div class="border rounded-2xl shadow-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-5 sm:p-6 text-right transition-all" style="background: var(--card-bg); border-color: var(--gold-accent);">
       <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color: var(--card-border);">
         <div class="flex items-center gap-2">
           <span class="text-2xl">🛡️</span>
           <div>
-            <h2 class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">فاحص سلامة البيانات الأنسابية</h2>
+            <h2 id="diagnosticsModalTitle" class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">فاحص سلامة البيانات الأنسابية</h2>
             <p class="text-[10px]" style="color: var(--text-muted);">فحص سلامة الروابط، التناظر، وقواعد الأنساب العربية</p>
           </div>
         </div>
@@ -1715,12 +1787,12 @@
   </div>
 
   <!-- ================= 5. KEYBOARD SHORTCUTS MODAL ================= -->
-  <div id="shortcutsModal" onclick="if(event.target === this) closeShortcutsModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" dir="rtl">
+  <div id="shortcutsModal" role="dialog" aria-modal="true" aria-labelledby="shortcutsModalTitle" onclick="if(event.target === this) closeShortcutsModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" dir="rtl">
     <div class="border rounded-2xl shadow-2xl max-w-md w-full p-5 text-right" style="background: var(--card-bg); border-color: var(--gold-accent);">
       <div class="flex items-center justify-between pb-3 border-b mb-3" style="border-color: var(--card-border);">
         <div class="flex items-center gap-2">
           <span class="text-xl">⌨️</span>
-          <h3 class="font-bold text-sm font-amiri" style="color: var(--text-main);">اختصارات لوحة المفاتيح</h3>
+          <h3 id="shortcutsModalTitle" class="font-bold text-sm font-amiri" style="color: var(--text-main);">اختصارات لوحة المفاتيح</h3>
         </div>
         <button onclick="closeShortcutsModal()" class="text-slate-400 font-bold">✕</button>
       </div>
@@ -3048,7 +3120,7 @@
     }
 
     /* ==========================================================================
-       7. VIEW 4: SUB-BRANCH FAMILY UNIT VIEW (ZERO-COLLISION TALL-TREE CASCADE)
+       7. VIEW 4: SUB-BRANCH FAMILY UNIT VIEW (ORTHOGONAL K34 TREE CONNECTIVITY)
        ========================================================================== */
     function renderSubBranchView(branchCode) {
       if (!window.FAMILY_DATA || !window.FAMILY_DATA.individuals) {
@@ -3069,10 +3141,11 @@
       };
       
       document.getElementById('chartHeaderTitle').textContent = branchTitles[branchCode] || `مشجرة فرع ${branchCode}`;
-      document.getElementById('chartHeaderSubtitle').textContent = 'هيكلية الأنساب الشجرية المتناظرة: الأجداد والآباء والأعمام والأبناء بخطوط عصبية انسيابية 🌿';
+      document.getElementById('chartHeaderSubtitle').textContent = 'هيكلية الأنساب الشجرية المتناظرة: الأجداد والآباء والأعمام والأبناء بحافلات ربط أسرية مستقيمة (K34 Style) 🌿';
 
       nodesContainer.innerHTML = '';
       svgConnectors.innerHTML = '';
+      window.ALL_TAPESTRY_CARDS = [];
 
       const isDark = document.documentElement.classList.contains('dark') || document.body.classList.contains('dark') || currentTheme === 'dark';
       const strokeCol = isDark ? '#f59e0b' : '#78350f';
@@ -3083,10 +3156,12 @@
       const k34Nodes = window.FAMILY_DATA.k34_nodes || [];
       const byId = new Map(allInds.map(i => [i.id, i]));
       k34Nodes.forEach(n => byId.set(n.id, n));
+      (window.FAMILY_DATA.classical_ancestors || []).forEach(a => byId.set(a.id, a));
 
+      // All nodes in this branch
       const branchNodes = allInds.filter(i => {
         const b = i.sub_branch || i.chart || i.branch || '';
-        return b.includes(branchCode) && !i.isUnlinked;
+        return b.includes(branchCode);
       });
 
       if (branchNodes.length === 0) {
@@ -3103,312 +3178,291 @@
       }
 
       const branchIds = new Set(branchNodes.map(i => i.id));
-      const roots = branchNodes.filter(node => {
-        const pids = node.parent_ids || [];
-        return !pids.some(pid => branchIds.has(pid));
-      });
 
-      roots.sort((a, b) => {
-        if (a.id.startsWith('ANC_ROOT_')) return -1;
-        if (b.id.startsWith('ANC_ROOT_')) return 1;
-        return 0;
-      });
+      // Look for the dedicated Branch Root Node first (e.g. ANC_ROOT_Q, ANC_ROOT_S_H, etc.)
+      const rootCandidates = [
+        `ANC_ROOT_${branchCode}`,
+        branchCode === 'S/H' ? 'ANC_ROOT_S_H' : null
+      ].filter(Boolean);
 
-      // Tall-Tree Architecture Dimensions & Spacing
-      const CARD_W = 190;
+      let primaryRoot = null;
+      for (const rKey of rootCandidates) {
+        if (byId.has(rKey)) {
+          primaryRoot = byId.get(rKey);
+          branchIds.add(primaryRoot.id);
+          break;
+        }
+      }
+
+      // Collect top roots
+      let roots = [];
+      if (primaryRoot) {
+        roots = [primaryRoot];
+      } else {
+        roots = branchNodes.filter(node => {
+          const pids = node.parent_ids || [];
+          return !pids.some(pid => branchIds.has(pid));
+        });
+      }
+
+      // Exact K34-Style Hierarchy Dimensions
+      const CARD_W = 195;
       const CARD_H = 48;
       const SPOUSE_GAP = 28;
-      const SIBLING_GAP = 36;
-      const LEVEL_H = 220;
-      const ROW_GAP = 90;
-      const TRACK_GAP = 70;
+      const SIBLING_GAP = 24;
+      const LEVEL_H = 135;
 
       const visited = new Set();
 
-      function layoutTallNode(nid) {
+      // Pure Hierarchical K34-Style Orthogonal Layout Engine
+      function layoutNodeK34Style(nid) {
         if (visited.has(nid)) return { w: CARD_W, h: CARD_H, cards: [], lines: [] };
         visited.add(nid);
         const node = byId.get(nid);
         if (!node) return { w: CARD_W, h: CARD_H, cards: [], lines: [] };
 
-        const nCards = [];
-        const nLines = [];
+        const cards = [];
+        const lines = [];
 
-        // Check Spouse
+        // Check for spouse
         let spouse = null;
         if (node.spouse_ids && node.spouse_ids.length > 0) {
           const s = byId.get(node.spouse_ids[0]);
           if (s && branchIds.has(s.id)) {
             spouse = s;
-            if ((spouse.child_ids || []).length === 0) visited.add(spouse.id);
+            if (!s.child_ids || s.child_ids.length === 0) {
+              visited.add(s.id);
+            }
           }
         }
         const coupleW = spouse ? (CARD_W * 2 + SPOUSE_GAP) : CARD_W;
 
+        // Children in this branch that have not been visited
         const cids = (node.child_ids || []).filter(cid => branchIds.has(cid) && !visited.has(cid));
+
         if (cids.length === 0) {
-          nCards.push({ node, x: 0, y: 0, w: CARD_W, h: CARD_H });
+          cards.push({ node, x: 0, y: 0, w: CARD_W, h: CARD_H });
           if (spouse) {
-            nCards.push({ node: spouse, x: CARD_W + SPOUSE_GAP, y: 0, w: CARD_W, h: CARD_H, isSpouse: true });
-            nLines.push({ type: 'marriage', from: node.id, to: spouse.id, x1: CARD_W, y1: CARD_H / 2, x2: CARD_W + SPOUSE_GAP, y2: CARD_H / 2 });
+            cards.push({ node: spouse, x: CARD_W + SPOUSE_GAP, y: 0, w: CARD_W, h: CARD_H, isSpouse: true });
+            lines.push({
+              type: 'marriage',
+              from: node.id,
+              to: spouse.id,
+              x1: CARD_W,
+              y1: CARD_H / 2,
+              x2: CARD_W + SPOUSE_GAP,
+              y2: CARD_H / 2
+            });
           }
-          return { w: coupleW, h: CARD_H, cards: nCards, lines: nLines };
+          return { w: coupleW, h: CARD_H, cards, lines };
         }
 
-        // Separate Continuing Lineages from Terminal Leaf Children
-        const contKids = cids.filter(cid => {
-          const chNode = byId.get(cid);
-          return chNode && (chNode.child_ids || []).some(gc => branchIds.has(gc));
+        // Recursively lay out children sub-branches
+        const childLayouts = cids.map(cid => layoutNodeK34Style(cid));
+        const childrenW = childLayouts.reduce((sum, cl) => sum + cl.w, 0) + Math.max(0, childLayouts.length - 1) * SIBLING_GAP;
+        const totalW = Math.max(coupleW, childrenW);
+
+        // Center parent / couple above children
+        const parentX = (totalW - coupleW) / 2;
+        cards.push({ node, x: parentX, y: 0, w: CARD_W, h: CARD_H });
+        let coupleMidX = parentX + CARD_W / 2;
+
+        if (spouse) {
+          cards.push({ node: spouse, x: parentX + CARD_W + SPOUSE_GAP, y: 0, w: CARD_W, h: CARD_H, isSpouse: true });
+          coupleMidX = parentX + CARD_W + SPOUSE_GAP / 2;
+          lines.push({
+            type: 'marriage',
+            from: node.id,
+            to: spouse.id,
+            x1: parentX + CARD_W,
+            y1: CARD_H / 2,
+            x2: parentX + CARD_W + SPOUSE_GAP,
+            y2: CARD_H / 2
+          });
+        }
+
+        let curX = (totalW - childrenW) / 2;
+        const childCenters = [];
+        let maxChildH = 0;
+
+        for (let i = 0; i < childLayouts.length; i++) {
+          const cl = childLayouts[i];
+          const childMidX = curX + cl.w / 2;
+          childCenters.push(childMidX);
+
+          cl.cards.forEach(c => {
+            cards.push({
+              node: c.node,
+              x: curX + c.x,
+              y: LEVEL_H + c.y,
+              w: c.w,
+              h: c.h,
+              isSpouse: c.isSpouse
+            });
+          });
+
+          cl.lines.forEach(l => {
+            lines.push({
+              type: l.type,
+              from: l.from,
+              to: l.to,
+              x1: curX + l.x1,
+              y1: LEVEL_H + l.y1,
+              x2: curX + l.x2,
+              y2: LEVEL_H + l.y2
+            });
+          });
+
+          if (cl.h > maxChildH) maxChildH = cl.h;
+          curX += cl.w + SIBLING_GAP;
+        }
+
+        // K34-Style Orthogonal Family Bus:
+        const firstCx = childCenters[0];
+        const lastCx = childCenters[childCenters.length - 1];
+        const busY = LEVEL_H - 35;
+
+        // 1. Vertical stem from parent/couple down to bus level
+        lines.push({
+          type: 'stem',
+          from: node.id,
+          x1: coupleMidX,
+          y1: CARD_H,
+          x2: coupleMidX,
+          y2: busY
         });
-        const leafKids = cids.filter(cid => !contKids.includes(cid));
 
-        const contLayouts = contKids.map(cid => layoutTallNode(cid));
-        const totalContW = contLayouts.reduce((sum, cl) => sum + cl.w, 0) + Math.max(0, contLayouts.length - 1) * SIBLING_GAP;
+        // 2. Horizontal bus bar spanning across all child drops
+        lines.push({
+          type: 'bus',
+          x1: Math.min(coupleMidX, firstCx),
+          y1: busY,
+          x2: Math.max(coupleMidX, lastCx),
+          y2: busY
+        });
 
-        // Compact Grid for Leaf Children
-        const leafCards = [];
-        let leafW = 0;
-        let leafH = 0;
-        if (leafKids.length > 0) {
-          const cols = Math.min(2, leafKids.length);
-          leafKids.forEach((lkid, i) => {
-            const lnode = byId.get(lkid);
-            visited.add(lkid);
-            const col = i % cols;
-            const row = Math.floor(i / cols);
-            const lx = col * (CARD_W + 28);
-            const ly = row * (CARD_H + 20);
-            leafCards.push({ node: lnode, x: lx, y: ly, w: CARD_W, h: CARD_H });
-            leafW = Math.max(leafW, lx + CARD_W);
-            leafH = Math.max(leafH, ly + CARD_H);
+        // 3. Vertical drop lines with arrow heads into top center of each child
+        for (let i = 0; i < childCenters.length; i++) {
+          lines.push({
+            type: 'drop',
+            to: cids[i],
+            from: node.id,
+            x1: childCenters[i],
+            y1: busY,
+            x2: childCenters[i],
+            y2: LEVEL_H
           });
         }
 
-        // Branch Layout Decision: Horizontal if small, else 2-Track Symmetrical Cascade
-        if (contLayouts.length <= 2 && (totalContW + leafW) < 1600) {
-          const allGroups = [];
-          if (leafCards.length > 0) {
-            allGroups.push({ w: leafW, h: leafH, cards: leafCards, isLeaf: true });
-          }
-          contLayouts.forEach((cl, i) => {
-            allGroups.push({ w: cl.w, h: cl.h, cards: cl.cards, lines: cl.lines, isLeaf: false, kidId: contKids[i] });
-          });
-
-          const totW = allGroups.reduce((s, g) => s + g.w, 0) + Math.max(0, allGroups.length - 1) * SIBLING_GAP;
-          const blockW = Math.max(coupleW, totW);
-          const parentX = (blockW - coupleW) / 2;
-
-          nCards.push({ node, x: parentX, y: 0, w: CARD_W, h: CARD_H });
-          let coupleMidX = parentX + CARD_W / 2;
-          if (spouse) {
-            nCards.push({ node: spouse, x: parentX + CARD_W + SPOUSE_GAP, y: 0, w: CARD_W, h: CARD_H, isSpouse: true });
-            coupleMidX = parentX + CARD_W + SPOUSE_GAP / 2;
-            nLines.push({ type: 'marriage', from: node.id, to: spouse.id, x1: parentX + CARD_W, y1: CARD_H / 2, x2: parentX + CARD_W + SPOUSE_GAP, y2: CARD_H / 2 });
-          }
-
-          let curX = (blockW - totW) / 2;
-          let maxGh = 0;
-          allGroups.forEach(g => {
-            const midX = curX + g.w / 2;
-            (g.cards || []).forEach(c => {
-              nCards.push({ node: c.node, x: curX + c.x, y: LEVEL_H + c.y, w: c.w, h: c.h, isSpouse: c.isSpouse });
-            });
-            (g.lines || []).forEach(l => {
-              nLines.push({ ...l, x1: curX + l.x1, y1: LEVEL_H + l.y1, x2: curX + l.x2, y2: LEVEL_H + l.y2 });
-            });
-            if (g.isLeaf) {
-              (g.cards || []).forEach(lk => {
-                nLines.push({ type: 'drop', toId: lk.node.id, x1: curX + lk.x + CARD_W / 2, y1: LEVEL_H - 30, x2: curX + lk.x + CARD_W / 2, y2: LEVEL_H + lk.y });
-              });
-            } else {
-              nLines.push({ type: 'drop', toId: g.kidId, x1: midX, y1: LEVEL_H - 30, x2: midX, y2: LEVEL_H });
-            }
-            if (g.h > maxGh) maxGh = g.h;
-            curX += g.w + SIBLING_GAP;
-          });
-
-          const firstCx = (blockW - totW) / 2 + allGroups[0].w / 2;
-          const lastCx = curX - SIBLING_GAP - allGroups[allGroups.length - 1].w / 2;
-          const busY = LEVEL_H - 30;
-          nLines.push({ type: 'stem', fromId: node.id, x1: coupleMidX, y1: CARD_H, x2: coupleMidX, y2: busY });
-          nLines.push({ type: 'bus', x1: Math.min(coupleMidX, firstCx), y1: busY, x2: Math.max(coupleMidX, lastCx), y2: busY });
-
-        } else {
-          // 2-Track Symmetrical Vertical Cascade (Left Track & Right Track)
-          const leftCont = [];
-          const rightCont = [];
-          let leftH = 0;
-          let rightH = 0;
-
-          contLayouts.forEach((cl, i) => {
-            const kidId = contKids[i];
-            if (leftH <= rightH) {
-              leftCont.push({ cl, kidId });
-              leftH += cl.h + ROW_GAP;
-            } else {
-              rightCont.push({ cl, kidId });
-              rightH += cl.h + ROW_GAP;
-            }
-          });
-
-          const leftW = leftCont.length > 0 ? Math.max(...leftCont.map(c => c.cl.w)) : 0;
-          const rightW = rightCont.length > 0 ? Math.max(...rightCont.map(c => c.cl.w)) : 0;
-
-          const spineX = leftW + TRACK_GAP;
-          const parentX = Math.max(0, spineX - coupleW / 2);
-          let coupleMidX = parentX + CARD_W / 2;
-
-          nCards.push({ node, x: parentX, y: 0, w: CARD_W, h: CARD_H });
-          if (spouse) {
-            nCards.push({ node: spouse, x: parentX + CARD_W + SPOUSE_GAP, y: 0, w: CARD_W, h: CARD_H, isSpouse: true });
-            coupleMidX = parentX + CARD_W + SPOUSE_GAP / 2;
-            nLines.push({ type: 'marriage', from: node.id, to: spouse.id, x1: parentX + CARD_W, y1: CARD_H / 2, x2: parentX + CARD_W + SPOUSE_GAP, y2: CARD_H / 2 });
-          }
-
-          let currentY = LEVEL_H;
-          if (leafCards.length > 0) {
-            const leafStartX = spineX - leafW / 2;
-            leafCards.forEach(c => {
-              nCards.push({ node: c.node, x: leafStartX + c.x, y: currentY + c.y, w: c.w, h: c.h });
-              nLines.push({ type: 'drop', toId: c.node.id, x1: leafStartX + c.x + CARD_W / 2, y1: currentY - 25, x2: leafStartX + c.x + CARD_W / 2, y2: currentY + c.y });
-            });
-            currentY += leafH + ROW_GAP;
-          }
-
-          let leftCurY = currentY;
-          let rightCurY = currentY;
-
-          // Place left track (right-aligned to spineX - TRACK_GAP)
-          leftCont.forEach(item => {
-            const cl = item.cl;
-            const subX = spineX - TRACK_GAP - cl.w;
-            const subY = leftCurY;
-            cl.cards.forEach(c => {
-              nCards.push({ node: c.node, x: subX + c.x, y: subY + c.y, w: c.w, h: c.h, isSpouse: c.isSpouse });
-            });
-            cl.lines.forEach(l => {
-              nLines.push({ ...l, x1: subX + l.x1, y1: subY + l.y1, x2: subX + l.x2, y2: subY + l.y2 });
-            });
-            const subMidX = subX + cl.w / 2;
-            nLines.push({ type: 'branch_left', fromId: node.id, toId: item.kidId, x1: spineX, y1: subY - 30, x2: subMidX, y2: subY });
-            leftCurY += cl.h + ROW_GAP;
-          });
-
-          // Place right track (left-aligned to spineX + TRACK_GAP)
-          rightCont.forEach(item => {
-            const cl = item.cl;
-            const subX = spineX + TRACK_GAP;
-            const subY = rightCurY;
-            cl.cards.forEach(c => {
-              nCards.push({ node: c.node, x: subX + c.x, y: subY + c.y, w: c.w, h: c.h, isSpouse: c.isSpouse });
-            });
-            cl.lines.forEach(l => {
-              nLines.push({ ...l, x1: subX + l.x1, y1: subY + l.y1, x2: subX + l.x2, y2: subY + l.y2 });
-            });
-            const subMidX = subX + cl.w / 2;
-            nLines.push({ type: 'branch_right', fromId: node.id, toId: item.kidId, x1: spineX, y1: subY - 30, x2: subMidX, y2: subY });
-            rightCurY += cl.h + ROW_GAP;
-          });
-
-          const maxY = Math.max(leftCurY, rightCurY);
-          nLines.push({ type: 'spine', x1: spineX, y1: CARD_H, x2: spineX, y2: maxY - ROW_GAP });
-          if (coupleMidX !== spineX) {
-            nLines.push({ type: 'connector', x1: coupleMidX, y1: CARD_H, x2: spineX, y2: CARD_H });
-          }
-        }
-
-        // Coordinate normalization: ensure minX = 0, minY = 0
-        const minX = Math.min(...nCards.map(c => c.x));
-        if (minX < 0) {
-          nCards.forEach(c => c.x -= minX);
-          nLines.forEach(l => {
-            if (l.x1 !== undefined) l.x1 -= minX;
-            if (l.x2 !== undefined) l.x2 -= minX;
-          });
-        }
-        const maxBlockX = Math.max(...nCards.map(c => c.x + c.w));
-        const maxBlockY = Math.max(...nCards.map(c => c.y + c.h));
-
-        return { w: maxBlockX, h: maxBlockY, cards: nCards, lines: nLines };
+        return { w: totalW, h: LEVEL_H + maxChildH, cards, lines };
       }
 
-      // Layout all roots
+      // Position all connected root trees
       let currentX = 140;
       const allCards = [];
       const allLines = [];
+      let maxTreeY = 0;
 
       roots.forEach(root => {
         if (visited.has(root.id)) return;
-        const res = layoutTallNode(root.id);
+        const res = layoutNodeK34Style(root.id);
         res.cards.forEach(c => {
-          allCards.push({
-            ...c,
-            x: currentX + c.x,
-            y: 180 + c.y
-          });
+          const finalX = currentX + c.x;
+          const finalY = 160 + c.y;
+          allCards.push({ ...c, x: finalX, y: finalY });
+          if (finalY + c.h > maxTreeY) maxTreeY = finalY + c.h;
         });
         res.lines.forEach(l => {
           allLines.push({
             ...l,
             x1: currentX + l.x1,
-            y1: 180 + l.y1,
+            y1: 160 + l.y1,
             x2: currentX + l.x2,
-            y2: 180 + l.y2
+            y2: 160 + l.y2
           });
         });
         currentX += res.w + 140;
       });
 
-      const maxX = Math.max(currentX + 160, 3600);
-      let maxY = 3200;
-      allCards.forEach(c => {
-        if (c.y + c.height + 250 > maxY) maxY = c.y + c.height + 250;
-      });
+      // Archival Gallery for Unlinked Branch Records (Records awaiting line verification)
+      const unlinkedMembers = branchNodes.filter(n => !visited.has(n.id));
+      let galleryStartY = Math.max(maxTreeY + 160, 600);
 
-      setCanvasDimensions(maxX, maxY);
+      if (unlinkedMembers.length > 0) {
+        const galleryCols = Math.min(10, Math.max(4, Math.floor((currentX - 200) / (CARD_W + 20))));
+        const startGalleryX = 140;
 
-      // Clean background border without obscuring tree limbs
-      let svg = generateOrganicTreeBackground(currentTheme, maxX, maxY, maxX / 2, 160, [], false);
+        unlinkedMembers.forEach((mem, idx) => {
+          const col = idx % galleryCols;
+          const row = Math.floor(idx / galleryCols);
+          const gx = startGalleryX + col * (CARD_W + 20);
+          const gy = galleryStartY + 80 + row * (CARD_H + 20);
 
-      // Render High-Contrast Kinship Conduits
+          allCards.push({
+            node: mem,
+            x: gx,
+            y: gy,
+            w: CARD_W,
+            h: CARD_H,
+            isGallery: true
+          });
+
+          if (gy + CARD_H > maxTreeY) maxTreeY = gy + CARD_H;
+        });
+      }
+
+      const totalCanvasWidth = Math.max(currentX + 240, 3600);
+      const totalCanvasHeight = Math.max(maxTreeY + 280, 1800);
+      setCanvasDimensions(totalCanvasWidth, totalCanvasHeight);
+
+      // Clean Antique Heirloom Border Background
+      let svg = generateOrganicTreeBackground(currentTheme, totalCanvasWidth, totalCanvasHeight, totalCanvasWidth / 2, 140, [], false);
+
+      // If gallery exists, add an ornate archival banner in SVG
+      if (unlinkedMembers.length > 0) {
+        const bannerW = Math.min(totalCanvasWidth - 280, 1600);
+        const bannerX = (totalCanvasWidth - bannerW) / 2;
+        const bannerY = galleryStartY + 10;
+        const bannerFill = isDark ? '#141824' : '#fffdf8';
+        const bannerStroke = isDark ? '#f59e0b' : '#b8860b';
+        const bannerText = isDark ? '#fef3c7' : '#78350f';
+
+        svg += `
+          <g id="branchGalleryBanner">
+            <line x1="80" y1="${galleryStartY - 30}" x2="${totalCanvasWidth - 80}" y2="${galleryStartY - 30}" stroke="${bannerStroke}" stroke-width="1.5" stroke-dasharray="8 4" opacity="0.45" />
+            <rect x="${bannerX}" y="${bannerY}" width="${bannerW}" height="46" rx="14" fill="${bannerFill}" stroke="${bannerStroke}" stroke-width="2" filter="drop-shadow(0 4px 12px rgba(0,0,0,0.15))" />
+            <text x="${totalCanvasWidth / 2}" y="${bannerY + 28}" text-anchor="middle" font-family="Amiri, serif" font-size="16" font-weight="bold" fill="${bannerText}">
+              📜 رواق القيود الأرشيفية الموثقة التابعة للفرع (${unlinkedMembers.length} قيد موثق بالأرشيف التاريخي)
+            </text>
+          </g>
+        `;
+      }
+
+      // Render High-Contrast Kinship Lines (Orthogonal Family Bus)
       allLines.forEach(l => {
         if (l.type === 'marriage') {
           svg += `
             <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${spouseCol}" stroke-width="2.5" stroke-dasharray="5 3" data-from="${l.from}" data-to="${l.to}" />
-            <text x="${(l.x1 + l.x2)/2}" y="${l.y1 + 4}" text-anchor="middle" font-size="12">💍</text>
-          `;
-        } else if (l.type === 'branch_left') {
-          svg += `
-            <path d="M ${l.x1} ${l.y1} C ${l.x1 - 40} ${l.y1}, ${l.x2} ${l.y2 - 30}, ${l.x2} ${l.y2}" 
-                  fill="none" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" data-from="${l.fromId}" data-to="${l.toId}" />
-          `;
-        } else if (l.type === 'branch_right') {
-          svg += `
-            <path d="M ${l.x1} ${l.y1} C ${l.x1 + 40} ${l.y1}, ${l.x2} ${l.y2 - 30}, ${l.x2} ${l.y2}" 
-                  fill="none" stroke="${strokeCol}" stroke-width="2.5" marker-end="url(#${markerId})" data-from="${l.fromId}" data-to="${l.toId}" />
-          `;
-        } else if (l.type === 'spine' || l.type === 'bus') {
-          svg += `
-            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.8" stroke-linecap="round" />
+            <text x="${(l.x1 + l.x2) / 2}" y="${l.y1 + 4}" text-anchor="middle" font-size="12">💍</text>
           `;
         } else if (l.type === 'stem') {
           svg += `
-            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.5" />
+            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.5" data-from="${l.from}" />
+          `;
+        } else if (l.type === 'bus') {
+          svg += `
+            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.8" stroke-linecap="round" />
           `;
         } else if (l.type === 'drop') {
           svg += `
-            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" data-to="${l.toId || ''}" />
-          `;
-        } else if (l.type === 'connector') {
-          svg += `
-            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.2" />
+            <line x1="${l.x1}" y1="${l.y1}" x2="${l.x2}" y2="${l.y2}" stroke="${strokeCol}" stroke-width="2.2" marker-end="url(#${markerId})" data-from="${l.from || ''}" data-to="${l.to || ''}" />
           `;
         }
       });
 
       svgConnectors.innerHTML = svg;
 
-      // Render HTML Cards
+      // Render HTML Cards with complete interactive listeners
       allCards.forEach(c => {
         const card = document.createElement('div');
         card.id = `card_${c.node.id}`;
@@ -3421,15 +3475,23 @@
         if (c.isSpouse) {
           card.style.borderStyle = 'dashed';
         }
+        if (c.isGallery) {
+          card.style.borderColor = isDark ? '#475569' : '#bfae8c';
+          card.style.opacity = '0.92';
+        }
 
         const isLiving = c.node.status_type === 'living';
+        const savedPhoto = localStorage.getItem(`khamis_photo_${c.node.id}`);
+
         card.innerHTML = `
           <div class="truncate w-full text-right group relative" dir="rtl">
             <div class="flex items-center gap-1.5 justify-between">
-              <span class="font-bold text-[11px] font-arabic truncate" style="color: var(--text-main);">${c.node.short_name || c.node.name}</span>
+              <span class="font-bold text-[11px] font-arabic truncate" style="color: var(--text-main);">
+                ${currentLanguage === 'en' && c.node.name_en ? c.node.name_en : (c.node.short_name || c.node.name)}
+              </span>
               <div class="flex items-center gap-1 shrink-0">
                 <button type="button" onclick="event.stopPropagation(); openEditMemberModal('${c.node.id}');" class="opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded text-[10px] hover:scale-125 cursor-pointer text-amber-600 dark:text-amber-400" title="تعديل بيانات الفرد (نقر مزدوج)">✏️</button>
-                <span class="text-[9px] shrink-0">${isLiving ? '🟢' : '⚪'}</span>
+                <span class="text-[9px] shrink-0">${savedPhoto ? '🖼️' : (isLiving ? '🟢' : '⚪')}</span>
               </div>
             </div>
             <div class="text-[9px] truncate" style="color: var(--text-muted);">${c.node.relation_type || c.node.title || c.node.role || 'فرد من الأسرة'}</div>
@@ -3447,7 +3509,10 @@
         card.addEventListener('mouseenter', () => traceNeuralKinship(c.node.id));
 
         nodesContainer.appendChild(card);
+        window.ALL_TAPESTRY_CARDS.push({ id: c.node.id, el: card, x: c.x, y: c.y, w: c.w, h: c.h });
       });
+
+      scheduleViewportCulling(120);
     }
 
     /* ==========================================================================
@@ -6493,6 +6558,16 @@
       } else {
         switchView('k34');
       }
+      
+      // Smoothly dismiss loading splash
+      setTimeout(() => {
+        const splash = document.getElementById('appLoadingSplash');
+        if (splash) {
+          splash.style.opacity = '0';
+          splash.style.pointerEvents = 'none';
+          setTimeout(() => splash.remove(), 500);
+        }
+      }, 400);
     }
 
     window.addEventListener('DOMContentLoaded', bootApplication);
