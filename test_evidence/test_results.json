@@ -7,7 +7,9 @@
       "neural_kinship_hover": "PASS",
       "drawer_and_modals": "PASS",
       "search_autocomplete_filter": "PASS",
-      "theme_toggling": "PASS"
+      "voice_and_adam_ascent": "PASS",
+      "bookmarks_and_diff": "PASS",
+      "museum_mode_and_keyboard": "PASS"
     },
     "pc_1440p": {
       "layout_rendering": "PASS",
@@ -34,7 +36,8 @@
     "pc_1080p_person_drawer_open.png",
     "pc_1080p_modal_add_member.png",
     "pc_1080p_search_autocomplete.png",
-    "pc_1080p_dark_theme.png",
+    "pc_1080p_adam_ascent_modal.png",
+    "pc_1080p_bookmarks_modal.png",
     "pc_1440p_master_overview.png",
     "pc_1440p_dark_theme_kinship.png",
     "mobile_iphone_header_responsive.png",

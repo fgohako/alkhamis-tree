@@ -443,7 +443,7 @@
     /* Print & Heirloom Scroll Poster Mode */
     @media print {
       header, #neuralKinshipHUD, #treeMinimap, #appToast, #gestureHint, #personDrawer,
-      .hud-controls, #unlinkedArchiveDrawer, .fixed, .absolute.bottom-5 {
+      .hud-controls, #unlinkedArchiveDrawer, .fixed, .absolute.bottom-5, #museumControls {
         display: none !important;
       }
       body, html {
@@ -461,8 +461,59 @@
         transform: scale(0.65) translate3d(0, 0, 0) !important;
         transform-origin: top center !important;
       }
+      .tree-card {
+        display: flex !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+      }
     }
-    
+
+    /* Museum / Fullscreen Presentation Mode */
+    body.museum-mode header {
+      transform: translateY(-100%);
+      transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body.museum-mode header:hover {
+      transform: translateY(0);
+    }
+    body.museum-mode .hud-controls {
+      opacity: 0.2;
+      transition: opacity 0.3s ease;
+    }
+    body.museum-mode .hud-controls:hover {
+      opacity: 1;
+    }
+
+    /* Voice Wave Narration Indicator */
+    .sound-bar {
+      display: inline-block;
+      width: 3px;
+      height: 12px;
+      margin: 0 1px;
+      background-color: currentColor;
+      border-radius: 2px;
+      animation: soundWave 0.8s ease-in-out infinite alternate;
+    }
+    .sound-bar:nth-child(2) { animation-delay: 0.2s; }
+    .sound-bar:nth-child(3) { animation-delay: 0.4s; }
+    .sound-bar:nth-child(4) { animation-delay: 0.6s; }
+    @keyframes soundWave {
+      0% { height: 4px; transform: scaleY(0.4); }
+      100% { height: 16px; transform: scaleY(1); }
+    }
+
+    /* Interactive Minimap Viewport Radar */
+    #minimapRadarBox {
+      border: 1.5px solid #d97706;
+      background: rgba(217, 119, 6, 0.15);
+      cursor: grab;
+      touch-action: none;
+      transition: background-color 0.2s;
+    }
+    #minimapRadarBox:active {
+      cursor: grabbing;
+      background: rgba(217, 119, 6, 0.28);
+    }
   </style>
 </head>
 <body class="h-full flex flex-col font-sans select-none overflow-x-hidden antialiased" style="background-color: var(--app-bg); color: var(--text-main);">
@@ -574,8 +625,18 @@
 
     <!-- View & Theme Controls -->
     <div class="flex items-center gap-1 sm:gap-1.5 shrink-0 order-2 md:order-3">
+      <!-- Locate Me In Tree Modal Button -->
+      <button 
+        id="openWelcomeBtn"
+        onclick="openWelcomeNameModal()" 
+        class="hidden sm:flex px-2 sm:px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all items-center gap-1 shadow-sm hover:scale-105 active:scale-95 cursor-pointer shrink-0 bg-gradient-to-r from-amber-500/15 via-amber-400/20 to-amber-600/15 text-amber-900 dark:text-amber-200 border-amber-500/40"
+        title="حدد موقعك في المشجرة بالاسم (أين مكاني؟)"
+        aria-label="حدد موقعك في المشجرة"
+      >
+        <span>📍</span>
+        <span class="hidden xl:inline text-[11px] font-arabic">موقعي</span>
+      </button>
 
-            
       <!-- Advanced Heritage Tools Dropdown Menu -->
       <div class="relative">
         <button 
@@ -593,6 +654,13 @@
 
         <div id="toolsMenuDropdown" class="hidden absolute left-0 sm:right-0 sm:left-auto top-full mt-1.5 w-60 rounded-2xl border shadow-2xl p-1.5 z-50 text-right backdrop-blur-xl text-xs divide-y" style="background: var(--card-bg); border-color: var(--gold-accent); divide-color: var(--card-border);" dir="rtl">
           <div class="p-1 space-y-0.5">
+            <button onclick="openWelcomeNameModal(); toggleToolsMenu(false);" class="w-full text-right px-3 py-2 rounded-xl hover:bg-amber-500/10 transition-colors flex items-center gap-2" style="color: var(--text-main);">
+              <span class="text-base">📍</span>
+              <div>
+                <div class="font-bold font-arabic text-xs">تحديد موقعي في المشجرة (أين مكاني؟)</div>
+                <div class="text-[10px]" style="color: var(--text-muted);">أدخل اسمك للانتقال المباشر لبطاقتك في المشجرة</div>
+              </div>
+            </button>
             <button onclick="openKinshipCalculatorModal(); toggleToolsMenu(false);" class="w-full text-right px-3 py-2 rounded-xl hover:bg-amber-500/10 transition-colors flex items-center gap-2" style="color: var(--text-main);">
               <span class="text-base">🤝</span>
               <div>
@@ -616,6 +684,27 @@
             </button>
           </div>
           <div class="p-1 space-y-0.5">
+            <button onclick="exportTreeToPng(); toggleToolsMenu(false);" class="w-full text-right px-3 py-2 rounded-xl hover:bg-amber-500/10 transition-colors flex items-center gap-2 text-amber-700 dark:text-amber-400">
+              <span class="text-base">📸</span>
+              <div>
+                <div class="font-bold font-arabic text-xs">تصدير صورة فائقة الدقة (PNG)</div>
+                <div class="text-[10px]" style="color: var(--text-muted);">تحميل المشجرة كصورة واضحة للطباعة والمشاركة</div>
+              </div>
+            </button>
+            <button onclick="exportTreeToSvg(); toggleToolsMenu(false);" class="w-full text-right px-3 py-2 rounded-xl hover:bg-amber-500/10 transition-colors flex items-center gap-2" style="color: var(--text-main);">
+              <span class="text-base">📐</span>
+              <div>
+                <div class="font-bold font-arabic text-xs">تصدير المشجرة كملف متجهي (SVG)</div>
+                <div class="text-[10px]" style="color: var(--text-muted);">رسم بياني نقي عالي الدقة دون أي تشويش</div>
+              </div>
+            </button>
+            <button onclick="openDiffInspectorModal(); toggleToolsMenu(false);" class="w-full text-right px-3 py-2 rounded-xl hover:bg-amber-500/10 transition-colors flex items-center gap-2" style="color: var(--text-main);">
+              <span class="text-base">🔍</span>
+              <div>
+                <div class="font-bold font-arabic text-xs">فاحص المسودات والتغييرات (Diff)</div>
+                <div class="text-[10px]" style="color: var(--text-muted);">مراجعة التعديلات المضافة قبل النشر والمزامنة</div>
+              </div>
+            </button>
             <button onclick="exportHeirloomPoster(); toggleToolsMenu(false);" class="w-full text-right px-3 py-2 rounded-xl hover:bg-amber-500/10 transition-colors flex items-center gap-2 text-amber-700 dark:text-amber-400">
               <span class="text-base">📜</span>
               <div>
@@ -641,6 +730,19 @@
         </div>
       </div>
     
+      <!-- Bookmarks Quick Action -->
+      <button 
+        id="bookmarksBtn"
+        onclick="openBookmarksModal()" 
+        class="px-2.5 sm:px-3 py-1.5 rounded-xl border text-xs font-bold transition-all flex items-center gap-1.5 shadow-sm hover:scale-105 active:scale-95 cursor-pointer shrink-0"
+        style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);"
+        title="سجل المفضلات والوصول السريع للأفراد (B)"
+      >
+        <span>⭐</span>
+        <span class="font-arabic text-[11px] hidden lg:inline">المفضلة</span>
+        <span id="bookmarksCountBadge" class="hidden font-mono text-[9px] px-1 rounded-full bg-amber-500/20 text-amber-700 dark:text-amber-300">0</span>
+      </button>
+
       <!-- Add Family Member Quick Action -->
       <button 
         onclick="openAddMemberModal()" 
@@ -660,6 +762,18 @@
       >
         <span>🚀</span>
         <span class="font-arabic text-[11px] hidden md:inline">نشر للجميع</span>
+      </button>
+
+      <!-- Fullscreen / Museum Mode Button -->
+      <button 
+        id="fullscreenToggleBtn"
+        onclick="toggleFullscreenMode()" 
+        class="hidden sm:flex px-2.5 py-1.5 rounded-xl border text-xs font-bold transition-all items-center gap-1 shadow-sm hover:scale-105 cursor-pointer shrink-0"
+        style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);"
+        title="نمط المعرض المتحفي وملء الشاشة (F)"
+      >
+        <span id="fullscreenToggleIcon">⛶</span>
+        <span class="text-[11px] hidden xl:inline">ملء الشاشة</span>
       </button>
 
       <!-- Theme Toggle Button (Parchment Heirloom vs Dark Archival) -->
@@ -1590,6 +1704,33 @@
             <!-- Primary Action Buttons -->
       <div class="pt-2 flex flex-col gap-2">
         
+        <!-- Voice Narration Button (Feature 1) -->
+        <button 
+          id="drawerVoiceReciteBtn"
+          onclick="toggleVoiceRecitation(selectedNodeId)" 
+          class="w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 hover:scale-[1.02] cursor-pointer bg-amber-500/10 border-amber-500/40 text-amber-800 dark:text-amber-300"
+          title="الاستماع لسلسلة النسب الشفهية بصوت عربي"
+        >
+          <span id="voiceReciteIcon">🔊</span>
+          <span id="voiceReciteText">استمع لسلسلة النسب الشفهية</span>
+          <span id="voiceReciteBars" class="hidden items-center ml-1">
+            <span class="sound-bar"></span>
+            <span class="sound-bar"></span>
+            <span class="sound-bar"></span>
+            <span class="sound-bar"></span>
+          </span>
+        </button>
+
+        <!-- Ascent to Adam Button (Feature 2) -->
+        <button 
+          onclick="openAdamAscentModal(selectedNodeId)" 
+          class="w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 hover:scale-[1.02] cursor-pointer bg-gradient-to-r from-amber-600/15 via-amber-500/10 to-amber-700/15 border-amber-600/30 text-amber-900 dark:text-amber-200"
+          title="عرض سلّم الارتقاء الأنسابي المباشر حتى آدم عليه السلام"
+        >
+          <span>🌟</span>
+          <span>ارتقاء النسب لآدم عليه السلام (37 سلفاً)</span>
+        </button>
+
         <button onclick="openKinshipCalculatorModal(selectedNodeId)" class="w-full py-2.5 px-3 rounded-xl border text-xs font-bold transition-all flex items-center justify-center gap-2 hover:scale-[1.02] cursor-pointer" style="background: var(--card-bg); border-color: var(--gold-accent); color: var(--gold-accent);" title="حساب صلة القرابة بين هذا الفرد وشخص آخر">
           <span>🤝</span>
           <span>حساب صلة القرابة مع فرد آخر</span>
@@ -1600,18 +1741,22 @@
           <span>تحديد الموقع على المشجرة</span>
         </button>
 
-        <div class="grid grid-cols-3 gap-2">
-          <button onclick="openEditMemberModal(selectedNodeId)" class="py-2.5 px-2 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="تعديل بيانات الفرد الأرشيفية">
+        <div class="grid grid-cols-4 gap-1.5">
+          <button id="drawerBookmarkBtn" onclick="toggleBookmark(selectedNodeId)" class="py-2.5 px-1.5 rounded-xl border font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="إضافة إلى قائمة المفضلات (B)">
+            <span id="drawerBookmarkIcon">⭐</span>
+            <span class="text-[10px]">المفضلة</span>
+          </button>
+          <button onclick="openEditMemberModal(selectedNodeId)" class="py-2.5 px-1.5 rounded-xl border font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="تعديل بيانات الفرد الأرشيفية">
             <span>✏️</span>
-            <span>تعديل</span>
+            <span class="text-[10px]">تعديل</span>
           </button>
-          <button onclick="copyShareLink(selectedNodeId)" class="py-2.5 px-2 rounded-xl border font-bold text-xs flex items-center justify-center gap-1.5 transition-all hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="نسخ رابط المشاركة المباشر لهذا الفرد">
+          <button onclick="copyShareLink(selectedNodeId)" class="py-2.5 px-1.5 rounded-xl border font-bold text-xs flex flex-col items-center justify-center gap-1 transition-all hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="نسخ رابط المشاركة المباشر لهذا الفرد">
             <span>🔗</span>
-            <span>مشاركة</span>
+            <span class="text-[10px]">مشاركة</span>
           </button>
-          <button onclick="copyPersonData()" class="py-2.5 px-2 rounded-xl border font-medium text-xs transition-all flex items-center justify-center gap-1.5 hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="نسخ بيانات الفرد كنص">
+          <button onclick="copyPersonData()" class="py-2.5 px-1.5 rounded-xl border font-medium text-xs transition-all flex flex-col items-center justify-center gap-1 hover:scale-105 cursor-pointer" style="background: var(--card-bg); border-color: var(--card-border); color: var(--text-main);" title="نسخ بيانات الفرد كنص">
             <span>📋</span>
-            <span>نسخ</span>
+            <span class="text-[10px]">نسخ</span>
           </button>
         </div>
 
@@ -1816,6 +1961,18 @@
           <span class="font-mono font-bold px-2 py-0.5 rounded border">0 / Space</span>
         </div>
         <div class="flex items-center justify-between p-2 rounded-lg" style="background: var(--canvas-bg);">
+          <span>التحليق والتنقل في المشجرة:</span>
+          <span class="font-mono font-bold px-2 py-0.5 rounded border">الأسهم / W, A, S, D</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-lg" style="background: var(--canvas-bg);">
+          <span>نمط المعرض وملء الشاشة:</span>
+          <span class="font-mono font-bold px-2 py-0.5 rounded border">F</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-lg" style="background: var(--canvas-bg);">
+          <span>سجل المفضلات الأنسابية:</span>
+          <span class="font-mono font-bold px-2 py-0.5 rounded border">B</span>
+        </div>
+        <div class="flex items-center justify-between p-2 rounded-lg" style="background: var(--canvas-bg);">
           <span>تبديل الخريطة المصغرة (Minimap):</span>
           <span class="font-mono font-bold px-2 py-0.5 rounded border">M</span>
         </div>
@@ -1826,7 +1983,147 @@
       </div>
     </div>
   </div>
+
+  <!-- ================= 6. BOOKMARKS & FAVORITES MODAL ================= -->
+  <div id="bookmarksModal" role="dialog" aria-modal="true" aria-labelledby="bookmarksModalTitle" onclick="if(event.target === this) closeBookmarksModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
+    <div class="border rounded-2xl shadow-2xl max-w-lg w-full max-h-[min(92vh,92dvh)] overflow-y-auto p-5 sm:p-6 text-right transition-all" style="background: var(--card-bg); border-color: var(--gold-accent);">
+      <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color: var(--card-border);">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">⭐</span>
+          <div>
+            <h2 id="bookmarksModalTitle" class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">سجل المفضلات الأنسابية (Bookmarks)</h2>
+            <p class="text-[10px]" style="color: var(--text-muted);">الوصول السريع للأفراد والأسلاف المفضلين المحفوظين محلياً</p>
+          </div>
+        </div>
+        <button onclick="closeBookmarksModal()" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-slate-400 font-bold text-sm">✕</button>
+      </div>
+
+      <div id="bookmarksListContainer" class="space-y-2 text-xs">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 7. ADAM ASCENT LADDER MODAL (TO ADAM PBUH) ================= -->
+  <div id="adamAscentModal" role="dialog" aria-modal="true" aria-labelledby="adamAscentModalTitle" onclick="if(event.target === this) closeAdamAscentModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
+    <div class="border rounded-2xl shadow-2xl max-w-xl w-full max-h-[min(92vh,92dvh)] overflow-y-auto p-5 sm:p-6 text-right transition-all" style="background: var(--card-bg); border-color: var(--gold-accent);">
+      <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color: var(--card-border);">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🌟</span>
+          <div>
+            <h2 id="adamAscentModalTitle" class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">سلّم الارتقاء الأنسابي المتصل إلى آدم عليه السلام</h2>
+            <p id="adamAscentPersonSubtitle" class="text-[10px]" style="color: var(--text-muted);">سلسلة الآباء والأجداد جيلاً بعد جيل وصولاً لأبي البشر</p>
+          </div>
+        </div>
+        <button onclick="closeAdamAscentModal()" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-slate-400 font-bold text-sm">✕</button>
+      </div>
+
+      <div id="adamAscentLadderContainer" class="space-y-2 text-xs max-h-[60vh] overflow-y-auto pr-1">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
+
+  <!-- ================= 8. DIFF & DRAFTS INSPECTOR MODAL ================= -->
+  <div id="diffInspectorModal" role="dialog" aria-modal="true" aria-labelledby="diffInspectorModalTitle" onclick="if(event.target === this) closeDiffInspectorModal()" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-sm transition-opacity" dir="rtl">
+    <div class="border rounded-2xl shadow-2xl max-w-2xl w-full max-h-[min(92vh,92dvh)] overflow-y-auto p-5 sm:p-6 text-right transition-all" style="background: var(--card-bg); border-color: var(--gold-accent);">
+      <div class="flex items-center justify-between pb-3 border-b mb-4" style="border-color: var(--card-border);">
+        <div class="flex items-center gap-2">
+          <span class="text-2xl">🔍</span>
+          <div>
+            <h2 id="diffInspectorModalTitle" class="font-bold text-base font-amiri text-amber-800 dark:text-amber-400">فاحص الفروقات والمسودات الأنسابية (Diff Inspector)</h2>
+            <p class="text-[10px]" style="color: var(--text-muted);">مقارنة التعديلات والإضافات المحلية مع قاعدة البيانات الأرشيفية</p>
+          </div>
+        </div>
+        <button onclick="closeDiffInspectorModal()" class="w-7 h-7 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-slate-400 font-bold text-sm">✕</button>
+      </div>
+
+      <div id="diffInspectorContent" class="space-y-3 text-xs">
+        <!-- Rendered dynamically -->
+      </div>
+    </div>
+  </div>
     
+
+  <!-- ================= 9. WELCOME & LOCATE USER POPUP MODAL ================= -->
+  <div id="welcomeNameModal" role="dialog" aria-modal="true" aria-labelledby="welcomeModalTitle" class="hidden fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/70 backdrop-blur-md transition-all duration-300" dir="rtl">
+    <div class="relative border-2 rounded-3xl shadow-2xl max-w-lg w-full max-h-[min(94vh,94dvh)] overflow-hidden flex flex-col p-5 sm:p-7 text-right transform transition-all duration-300 scale-95" style="background: var(--card-bg); border-color: var(--gold-accent); box-shadow: 0 25px 50px -12px rgba(217, 119, 6, 0.25);">
+      
+      <!-- Close button -->
+      <button onclick="closeWelcomeNameModal()" class="absolute top-4 left-4 w-8 h-8 rounded-full flex items-center justify-center hover:bg-black/10 dark:hover:bg-white/10 text-slate-400 hover:text-red-500 font-bold text-sm transition-colors cursor-pointer" title="تخطي واستكشاف المشجرة">✕</button>
+
+      <!-- Header Icon & Greeting -->
+      <div class="text-center mb-4 sm:mb-5">
+        <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-tr from-amber-500/20 via-amber-400/30 to-amber-600/10 border border-amber-500/40 text-2xl sm:text-3xl shadow-inner mb-2.5">
+          🌿
+        </div>
+        <h2 id="welcomeModalTitle" class="text-lg sm:text-2xl font-bold font-amiri text-amber-800 dark:text-amber-400 mb-1 leading-tight">
+          مرحباً بك في مشجرة عائلة آل خميس الكبرى
+        </h2>
+        <p class="text-xs sm:text-sm font-arabic font-medium" style="color: var(--text-muted);">
+          اكتب اسمك الكريم للانتقال المباشر وتحديد موقعك في المشجرة الأنسابية
+        </p>
+      </div>
+
+      <!-- Search Input Container -->
+      <div class="relative mb-3">
+        <label for="welcomeNameInput" class="block text-xs font-bold font-arabic mb-1.5" style="color: var(--text-main);">
+          ابحث عن اسمك أو اسم والدك / جدك:
+        </label>
+        <div class="relative">
+          <span class="absolute inset-y-0 right-0 pr-3.5 flex items-center pointer-events-none text-amber-600 dark:text-amber-400 text-sm">
+            👤
+          </span>
+          <input 
+            type="text" 
+            id="welcomeNameInput" 
+            placeholder="اكتب اسمك هنا (مثال: حسين خميس، علي، فاطمة، عيسى)..." 
+            class="w-full rounded-2xl pr-10 pl-10 py-2.5 sm:py-3 text-xs sm:text-sm border-2 focus:outline-none focus:ring-2 focus:ring-amber-500/50 transition-all font-arabic shadow-inner"
+            style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--text-main);"
+            autocomplete="off"
+          >
+          <button 
+            type="button" 
+            id="welcomeClearInputBtn" 
+            onclick="clearWelcomeInput()" 
+            class="hidden absolute inset-y-0 left-0 pl-3 flex items-center text-slate-400 hover:text-red-500 text-xs font-bold cursor-pointer"
+          >
+            ✕
+          </button>
+        </div>
+      </div>
+
+      <!-- Live Autocomplete Suggestions Box -->
+      <div id="welcomeSuggestionsBox" class="flex-1 overflow-y-auto max-h-[35vh] min-h-[130px] p-1.5 rounded-2xl border mb-3 sm:mb-4 divide-y divide-amber-500/10" style="background: var(--canvas-bg); border-color: var(--card-border);">
+        <div id="welcomeSuggestionsEmpty" class="h-full flex flex-col items-center justify-center p-4 text-center text-slate-400 font-arabic text-xs">
+          <span>🔍 ابدأ بكتابة حرفين أو أكثر من اسمك لعرض النتائج الفورية</span>
+        </div>
+        <div id="welcomeSuggestionsList" class="space-y-1"></div>
+      </div>
+
+      <!-- Action Footer -->
+      <div class="flex items-center gap-2 pt-2 border-t" style="border-color: var(--card-border);">
+        <button 
+          type="button" 
+          onclick="submitWelcomeName()" 
+          id="welcomeJumpBtn"
+          class="flex-1 py-2.5 sm:py-3 rounded-2xl font-bold font-arabic text-xs sm:text-sm text-white shadow-lg bg-gradient-to-r from-amber-600 to-amber-500 hover:from-amber-700 hover:to-amber-600 active:scale-98 transition-all flex items-center justify-center gap-2 cursor-pointer"
+        >
+          <span>🎯</span>
+          <span>الانتقال لموقعي في المشجرة</span>
+        </button>
+        <button 
+          type="button" 
+          onclick="closeWelcomeNameModal()" 
+          class="px-3.5 sm:px-4 py-2.5 sm:py-3 rounded-2xl font-bold font-arabic text-xs sm:text-sm border transition-all hover:bg-black/5 dark:hover:bg-white/5 cursor-pointer shrink-0"
+          style="border-color: var(--card-border); color: var(--text-muted);"
+        >
+          تخطي واستكشاف المشجرة
+        </button>
+      </div>
+
+    </div>
+  </div>
 
   <!-- Drawer Backdrop on Mobile -->
   <div id="drawerBackdrop" onclick="closePersonDrawer()" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-40 transition-opacity"></div>
@@ -1963,7 +2260,7 @@
       }
     }
 
-    // --- Desktop Mouse Wheel Zoom (Anchored to Cursor) ---
+    // --- Cross-Platform Wheel & Trackpad Zoom (Anchored to Cursor) ---
     viewport.addEventListener('wheel', (e) => {
       e.preventDefault();
       const rect = viewport.getBoundingClientRect();
@@ -1973,8 +2270,18 @@
       const worldX = (mouseX - translateX) / currentScale;
       const worldY = (mouseY - translateY) / currentScale;
 
-      const zoomFactor = e.deltaY < 0 ? 1.15 : 0.87;
-      const newScale = Math.min(Math.max(currentScale * zoomFactor, 0.10), 3.0);
+      // Trackpad pinch gesture (e.ctrlKey) vs standard mouse wheel
+      let zoomFactor;
+      if (e.ctrlKey) {
+        // High-precision smooth trackpad pinch
+        zoomFactor = Math.exp(-e.deltaY * 0.015);
+      } else {
+        // Continuous smooth mouse wheel scaling
+        const normalizedDelta = Math.sign(e.deltaY) * Math.min(Math.abs(e.deltaY), 100);
+        zoomFactor = Math.exp(-normalizedDelta * 0.0018);
+      }
+      
+      const newScale = Math.min(Math.max(currentScale * zoomFactor, 0.08), 3.0);
 
       translateX = mouseX - worldX * newScale;
       translateY = mouseY - worldY * newScale;
@@ -1984,6 +2291,13 @@
       scheduleViewportCulling(150);
       hideGestureHint();
     }, { passive: false });
+
+    // iOS Safari WebKit Gesture Conflict Prevention (Prevents whole-page viewport bouncing/scaling)
+    ['gesturestart', 'gesturechange', 'gestureend'].forEach(eventName => {
+      window.addEventListener(eventName, (e) => {
+        e.preventDefault();
+      }, { passive: false });
+    });
 
     // --- Desktop Mouse Drag Pan ---
     viewport.addEventListener('mousedown', (e) => {
@@ -2059,8 +2373,6 @@
     }, { passive: true });
 
     viewport.addEventListener('touchmove', (e) => {
-      e.preventDefault();
-
       if (e.touches.length === 1) {
         const dx = e.touches[0].clientX - touchStartClientX;
         const dy = e.touches[0].clientY - touchStartClientY;
@@ -2070,15 +2382,17 @@
           document.body.classList.add('canvas-interacting');
         }
         if (isDragging) {
+          e.preventDefault();
           translateX = e.touches[0].clientX - startX;
           translateY = e.touches[0].clientY - startY;
           requestTransformUpdate();
         }
       } else if (isPinching && e.touches.length === 2) {
+        e.preventDefault();
         const currentDist = getTouchDistance(e.touches[0], e.touches[1]);
         if (initialPinchDist > 0) {
           const ratio = currentDist / initialPinchDist;
-          const newScale = Math.min(Math.max(initialPinchScale * ratio, 0.10), 3.0);
+          const newScale = Math.min(Math.max(initialPinchScale * ratio, 0.08), 3.0);
 
           const worldX = (pinchMidX - translateX) / currentScale;
           const worldY = (pinchMidY - translateY) / currentScale;
@@ -2092,13 +2406,20 @@
       }
     }, { passive: false });
 
+    function handleTouchEndOrCancel() {
+      isDragging = false;
+      isPinching = false;
+      document.body.classList.remove('canvas-interacting');
+      scheduleViewportCulling(120);
+      if (touchMovedSignificantly) {
+        // Prevent ghost click after drag
+        setTimeout(() => { touchMovedSignificantly = false; }, 250);
+      }
+    }
+
     viewport.addEventListener('touchend', (e) => {
       if (e.touches.length === 0) {
-        isDragging = false;
-        isPinching = false;
-        document.body.classList.remove('canvas-interacting');
-        scheduleViewportCulling(120);
-        setTimeout(() => { touchMovedSignificantly = false; }, 80);
+        handleTouchEndOrCancel();
       } else if (e.touches.length === 1) {
         isPinching = false;
         isDragging = true;
@@ -2106,6 +2427,44 @@
         startY = e.touches[0].clientY - translateY;
       }
     }, { passive: true });
+
+    // Handle touchcancel when interrupted by incoming notifications or system gestures
+    viewport.addEventListener('touchcancel', handleTouchEndOrCancel, { passive: true });
+    window.addEventListener('touchcancel', handleTouchEndOrCancel, { passive: true });
+
+    // Prevent ghost taps on cards when dragging canvas on touch screens
+    window.addEventListener('click', (e) => {
+      if (touchMovedSignificantly && e.target.closest('.tree-card')) {
+        e.stopImmediatePropagation();
+        e.preventDefault();
+      }
+    }, true);
+
+    // Responsive Orientation & Window Resize Viewport Adaptation
+    let resizeDebounceTimer = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeDebounceTimer);
+      resizeDebounceTimer = setTimeout(() => {
+        scheduleViewportCulling(50);
+        if (typeof updateMinimapViewport === 'function') {
+          updateMinimapViewport();
+        }
+      }, 120);
+    });
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => {
+        fitToScreen();
+      }, 200);
+    });
+
+    // Print Lifecycle Listeners: Uncull all cards prior to print, restore after
+    window.addEventListener('beforeprint', () => {
+      const cards = nodesContainer.querySelectorAll('.tree-card');
+      cards.forEach(c => { c.style.display = ''; });
+    });
+    window.addEventListener('afterprint', () => {
+      scheduleViewportCulling(100);
+    });
 
     function hideGestureHint() {
       const hint = document.getElementById('gestureHint');
@@ -4152,6 +4511,12 @@
       // Photo Avatar Display
       const savedPhoto = localStorage.getItem(`khamis_photo_${person.id}`);
       updateDrawerPhotoDisplay(savedPhoto);
+
+      // Sync Favorite/Bookmark state in drawer
+      updateDrawerBookmarkButton(person.id);
+
+      // Stop any prior recitation when switching person
+      stopVoiceRecitation();
 
       // Show/Hide custom member delete button
       const customActions = document.getElementById('drawerCustomMemberActions');
@@ -6464,37 +6829,896 @@
       });
     }
 
-    // 9. Shortcuts Modal
-    function openShortcutsModal() {
-      document.getElementById('shortcutsModal')?.classList.remove('hidden');
-    }
-    function closeShortcutsModal() {
-      document.getElementById('shortcutsModal')?.classList.add('hidden');
+    // ==========================================================================
+    // 10 GAME CHANGING FEATURES IMPLEMENTATION
+    // ==========================================================================
+
+    // Helper: Traverse Patronymic Lineage upwards to tree root
+    function getPatronymicLineage(person) {
+      const chain = [];
+      let curr = person;
+      const seen = new Set();
+      while (curr && !seen.has(curr.id)) {
+        seen.add(curr.id);
+        chain.push(curr);
+        if (curr.parent_ids && curr.parent_ids.length > 0) {
+          curr = findPersonById(curr.parent_ids[0]);
+        } else if (curr.parent_id) {
+          curr = findPersonById(curr.parent_id);
+        } else {
+          break;
+        }
+      }
+      return chain;
     }
 
-    // 10. Global Keyboard Shortcuts Handler (Ctrl+K, Esc, +, -, M, T, ?)
+    // --- FEATURE 1: Oral Pedigree Voice Recitation (TTS Engine) ---
+    let activeVoiceUtterance = null;
+    let isVoicePlaying = false;
+
+    function toggleVoiceRecitation(personId) {
+      if (!('speechSynthesis' in window)) {
+        showToast('متصفحك لا يدعم خاصية التلاوة الصوتية', '⚠️');
+        return;
+      }
+
+      if (isVoicePlaying) {
+        stopVoiceRecitation();
+        return;
+      }
+
+      const p = findPersonById(personId);
+      if (!p) return;
+
+      const path = getPatronymicLineage(p);
+      const names = path.map(x => x.short_name || x._given);
+      const lineageText = names.join(' بن ');
+      const speechText = `نسب ${p.short_name}: هو ${lineageText} من أسرة آل خميس، من عنزة بن أسد بن ربيعة بن نزار بن معد بن عدنان.`;
+
+      triggerHaptic('tap');
+      playAudioChime('chime');
+
+      window.speechSynthesis.cancel();
+      const utter = new SpeechSynthesisUtterance(speechText);
+      utter.lang = 'ar-SA';
+      utter.rate = 0.88;
+      utter.pitch = 1.0;
+
+      const voices = window.speechSynthesis.getVoices();
+      const arVoice = voices.find(v => v.lang.startsWith('ar'));
+      if (arVoice) utter.voice = arVoice;
+
+      utter.onstart = () => {
+        isVoicePlaying = true;
+        const btn = document.getElementById('drawerVoiceReciteBtn') || document.getElementById('voiceRecitationBtn');
+        if (btn) {
+          btn.innerHTML = `
+            <div class="flex items-center gap-1.5 sound-bar">
+              <span class="w-1 h-3 bg-amber-400 rounded-full animate-pulse"></span>
+              <span class="w-1 h-4 bg-amber-300 rounded-full animate-pulse" style="animation-delay: 150ms;"></span>
+              <span class="w-1 h-2 bg-amber-400 rounded-full animate-pulse" style="animation-delay: 300ms;"></span>
+            </div>
+            <span>إيقاف التلاوة الشفهية</span>
+          `;
+          btn.classList.add('bg-amber-800');
+        }
+      };
+
+      utter.onend = () => {
+        stopVoiceRecitation();
+      };
+
+      utter.onerror = () => {
+        stopVoiceRecitation();
+      };
+
+      activeVoiceUtterance = utter;
+      window.speechSynthesis.speak(utter);
+    }
+
+    function stopVoiceRecitation() {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+      }
+      isVoicePlaying = false;
+      activeVoiceUtterance = null;
+      const btn = document.getElementById('drawerVoiceReciteBtn') || document.getElementById('voiceRecitationBtn');
+      if (btn) {
+        btn.innerHTML = `<span>🔊</span><span>استمع لسلسلة النسب الشفهية</span>`;
+        btn.classList.remove('bg-amber-800');
+      }
+    }
+
+    // --- FEATURE 2: Adam Ascent Ladder (37 Ancestors Continuous Pedigree) ---
+    function openAdamAscentModal(personId) {
+      const modal = document.getElementById('adamAscentModal');
+      if (!modal) return;
+      renderAdamAscent(personId);
+      modal.classList.remove('hidden');
+      triggerHaptic('modal');
+    }
+
+    function closeAdamAscentModal() {
+      document.getElementById('adamAscentModal')?.classList.add('hidden');
+    }
+
+    function renderAdamAscent(personId) {
+      const p = findPersonById(personId);
+      if (!p) return;
+
+      const titleEl = document.getElementById('adamAscentPersonTitle') || document.getElementById('adamAscentPersonSubtitle');
+      if (titleEl) titleEl.textContent = `نسب ${p.short_name} المتصل إلى آدم عليه السلام`;
+
+      const container = document.getElementById('adamAscentTimeline') || document.getElementById('adamAscentLadderContainer');
+      if (!container) return;
+
+      // Build chain from person upwards through historical ancestors
+      const localChain = getPatronymicLineage(p).reverse(); // from root Khamis down to person
+      const classicalAncestors = (window.FAMILY_DATA?.classical_ancestors || []).slice().reverse(); // from Adam down to Khamis
+
+      // Combine chains avoiding duplicate Khamis
+      const fullAscent = [];
+      // 1. Person up to Khamis
+      const pChain = getPatronymicLineage(p); // person, father, grandfather ... Khamis
+      pChain.forEach((node, i) => {
+        fullAscent.push({
+          name: node.short_name || node._given,
+          era: i === 0 ? 'الفرد المعاصر' : `السلف رقم ${i}`,
+          isMilestone: i === 0 || node.id === 'khamis_root' || node.short_name?.includes('خميس'),
+          type: 'local'
+        });
+      });
+
+      // 2. Classical Ascent from Rabiah up to Adam
+      const rabiahToAdam = [
+        { name: "عنزة", era: "جد قبيلة عنزة الوائلية", isMilestone: true },
+        { name: "أسد", era: "سلف ربيعة", isMilestone: false },
+        { name: "ربيعة", era: "جذم ربيعة العظيم", isMilestone: true },
+        { name: "نزار", era: "جد القبائل النزارية", isMilestone: true },
+        { name: "معد", era: "معد بن عدنان", isMilestone: false },
+        { name: "عدنان", era: "جد العرب العدنانية المجمع عليه", isMilestone: true },
+        { name: "أدد", era: "سلسلة الآباء", isMilestone: false },
+        { name: "الهميسع", era: "سلسلة الآباء", isMilestone: false },
+        { name: "نبت", era: "سلسلة الآباء", isMilestone: false },
+        { name: "إسماعيل عليه السلام", era: "ذبيح الله نبي الله ورسوله", isMilestone: true },
+        { name: "إبراهيم الخليل عليه السلام", era: "خليل الرحمن وأبو الأنبياء", isMilestone: true },
+        { name: "تارح (آزر)", era: "والد إبراهيم الخليل", isMilestone: false },
+        { name: "ناحور", era: "سلسلة الآباء", isMilestone: false },
+        { name: "ساروغ", era: "سلسلة الآباء", isMilestone: false },
+        { name: "راعو", era: "سلسلة الآباء", isMilestone: false },
+        { name: "فالخ", era: "سلسلة الآباء", isMilestone: false },
+        { name: "عابر (هود عليه السلام)", era: "نبي الله هود", isMilestone: true },
+        { name: "شالخ", era: "سلسلة الآباء", isMilestone: false },
+        { name: "أرفخشد", era: "سلسلة الآباء", isMilestone: false },
+        { name: "سام", era: "سام بن نوح أبو العرب", isMilestone: true },
+        { name: "نوح عليه السلام", era: "شيخ المرسلين والرسول الأول", isMilestone: true },
+        { name: "لامك", era: "سلسلة الآباء قبل الطوفان", isMilestone: false },
+        { name: "متوشلخ", era: "سلسلة الآباء قبل الطوفان", isMilestone: false },
+        { name: "أخنوخ (إدريس عليه السلام)", era: "نبي الله إدريس أول من خط بالقلم", isMilestone: true },
+        { name: "يرد", era: "سلسلة الآباء البدئية", isMilestone: false },
+        { name: "مهلائيل", era: "سلسلة الآباء البدئية", isMilestone: false },
+        { name: "قينان", era: "سلسلة الآباء البدئية", isMilestone: false },
+        { name: "أنوش", era: "سلسلة الآباء البدئية", isMilestone: false },
+        { name: "شيث عليه السلام", era: "هبة الله نبي الله بعد آدم", isMilestone: true },
+        { name: "آدم عليه السلام", era: "أبو البشر وخليفة الله في أرضه", isMilestone: true }
+      ];
+
+      rabiahToAdam.forEach(m => fullAscent.push(m));
+
+      const countBadge = document.getElementById('adamAscentStepCount');
+      if (countBadge) countBadge.textContent = `${fullAscent.length} سلفاً متصلاً`;
+
+      const html = fullAscent.map((node, index) => {
+        const isAdam = index === fullAscent.length - 1;
+        const isCurrent = index === 0;
+        const icon = isAdam ? '👑' : (isCurrent ? '👤' : (node.isMilestone ? '⭐' : '•'));
+        const borderStyle = node.isMilestone ? 'border-amber-500/50 bg-amber-500/10' : 'border-slate-500/20 bg-slate-500/5';
+        const nameColor = node.isMilestone ? 'text-amber-700 dark:text-amber-300 font-extrabold' : 'text-slate-700 dark:text-slate-300 font-semibold';
+        
+        return `
+          <div class="relative flex items-center gap-3 p-2.5 rounded-xl border ${borderStyle} transition-all hover:scale-[1.01]">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shadow ${node.isMilestone ? 'bg-amber-600 text-white' : 'bg-slate-300 dark:bg-slate-700 text-slate-800 dark:text-slate-200'}">
+              ${icon}
+            </div>
+            <div class="flex-1">
+              <div class="flex items-center justify-between">
+                <h4 class="text-xs sm:text-sm ${nameColor}">${node.name}</h4>
+                <span class="text-[10px] font-mono text-slate-400">#${index + 1}</span>
+              </div>
+              <p class="text-[11px] text-slate-500 dark:text-slate-400">${node.era}</p>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      container.innerHTML = html;
+    }
+
+    // --- FEATURE 3: Bookmarks & Genealogical Quick Access ---
+    let savedBookmarks = [];
+
+    function initBookmarks() {
+      try {
+        const raw = localStorage.getItem('khamis_bookmarks');
+        savedBookmarks = raw ? JSON.parse(raw) : [];
+      } catch (e) {
+        savedBookmarks = [];
+      }
+      updateBookmarksBadge();
+    }
+
+    function isPersonBookmarked(personId) {
+      return savedBookmarks.includes(personId);
+    }
+
+    function toggleBookmark(personId) {
+      if (!personId) return;
+      triggerHaptic('tap');
+      playAudioChime('ping');
+
+      const idx = savedBookmarks.indexOf(personId);
+      if (idx > -1) {
+        savedBookmarks.splice(idx, 1);
+        showToast('تمت إزالة الفرد من المفضلة', '⭐');
+      } else {
+        savedBookmarks.push(personId);
+        showToast('تمت إضافة الفرد إلى المفضلة 🌟', '⭐');
+      }
+
+      try {
+        localStorage.setItem('khamis_bookmarks', JSON.stringify(savedBookmarks));
+      } catch (e) {}
+
+      updateBookmarksBadge();
+      updateDrawerBookmarkButton(personId);
+      renderBookmarksList();
+    }
+
+    function updateBookmarksBadge() {
+      const badge = document.getElementById('bookmarksCountBadge');
+      if (badge) {
+        badge.textContent = savedBookmarks.length;
+        badge.style.display = savedBookmarks.length > 0 ? 'inline-flex' : 'none';
+      }
+    }
+
+    function updateDrawerBookmarkButton(personId) {
+      const btn = document.getElementById('drawerBookmarkBtn');
+      if (!btn) return;
+      const isFav = isPersonBookmarked(personId);
+      btn.innerHTML = isFav ? `<span>★</span><span>إزالة من المفضلة</span>` : `<span>⭐</span><span>إضافة للمفضلة</span>`;
+      btn.classList.toggle('text-amber-500', isFav);
+    }
+
+    function openBookmarksModal() {
+      renderBookmarksList();
+      document.getElementById('bookmarksModal')?.classList.remove('hidden');
+      triggerHaptic('modal');
+    }
+
+    function closeBookmarksModal() {
+      document.getElementById('bookmarksModal')?.classList.add('hidden');
+    }
+
+    function renderBookmarksList() {
+      const container = document.getElementById('bookmarksListContainer');
+      if (!container) return;
+
+      if (savedBookmarks.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400">
+            <span class="text-3xl block mb-2">⭐</span>
+            <p class="text-xs">لم تقم بإضافة أي أفراد إلى المفضلة بعد.</p>
+            <p class="text-[10px] text-slate-500 mt-1">اضغط على زر النجمة في بطاقة أي فرد للوصول إليه بضغطة زر.</p>
+          </div>
+        `;
+        return;
+      }
+
+      const html = savedBookmarks.map(id => {
+        const p = findPersonById(id);
+        if (!p) return '';
+        const branch = p.branch || 'آل خميس';
+        const gen = p.generation ? `الجيل ${p.generation}` : '';
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 hover:bg-amber-500/10 transition-all">
+            <div class="flex items-center gap-2 cursor-pointer flex-1" onclick="closeBookmarksModal(); selectPerson('${p.id}', getTargetViewForPerson(findPersonById('${p.id}')));">
+              <div class="w-7 h-7 rounded-lg bg-amber-600/20 text-amber-600 dark:text-amber-400 font-bold flex items-center justify-center text-xs">
+                ${p.short_name?.charAt(0) || 'خ'}
+              </div>
+              <div>
+                <h4 class="font-bold text-xs" style="color: var(--text-main);">${p.short_name}</h4>
+                <p class="text-[10px] text-slate-400">${branch} • ${gen}</p>
+              </div>
+            </div>
+            <div class="flex items-center gap-1.5">
+              <button onclick="flyToPerson('${p.id}', { openDrawer: true }); closeBookmarksModal();" class="p-1 text-slate-400 hover:text-amber-500 text-xs" title="انتقال">🎯</button>
+              <button onclick="toggleBookmark('${p.id}')" class="p-1 text-red-400 hover:text-red-600 text-xs" title="حذف">✕</button>
+            </div>
+          </div>
+        `;
+      }).filter(Boolean).join('');
+
+      container.innerHTML = html;
+    }
+
+    // --- FEATURE 4: Ultra High-Res PNG & SVG Exporters ---
+    function exportTreeToPng() {
+      showToast('جاري تحضير وتصدير المشجرة بدقة فائقة PNG...', '📸');
+      triggerHaptic('tap');
+
+      const svgEl = document.getElementById('treeSvg');
+      if (!svgEl) return;
+
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const URL_obj = window.URL || window.webkitURL || window;
+      const blobURL = URL_obj.createObjectURL(svgBlob);
+
+      const image = new Image();
+      image.onload = () => {
+        const canvas = document.createElement('canvas');
+        // Export high resolution 2x
+        canvas.width = (parseInt(svgEl.getAttribute('width')) || 4000);
+        canvas.height = (parseInt(svgEl.getAttribute('height')) || 2500);
+        const ctx = canvas.getContext('2d');
+
+        // Draw Canvas Background
+        ctx.fillStyle = currentTheme === 'dark' ? '#0d1117' : '#fffdf9';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(image, 0, 0);
+
+        URL_obj.revokeObjectURL(blobURL);
+        const pngUrl = canvas.toDataURL('image/png');
+        const downloadLink = document.createElement('a');
+        downloadLink.download = `Al-Khamis-Family-Tree-${activeView}-${new Date().toISOString().slice(0, 10)}.png`;
+        downloadLink.href = pngUrl;
+        document.body.appendChild(downloadLink);
+        downloadLink.click();
+        downloadLink.remove();
+        showToast('تم تحميل صورة المشجرة فائقة الدقة بنجاح 🖼️', '✨');
+      };
+      image.src = blobURL;
+    }
+
+    function exportTreeToSvg() {
+      showToast('جاري تصدير المشجرة كملف متجهي SVG...', '📐');
+      triggerHaptic('tap');
+
+      const svgEl = document.getElementById('treeSvg');
+      if (!svgEl) return;
+
+      const svgData = new XMLSerializer().serializeToString(svgEl);
+      const blob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+      const downloadLink = document.createElement('a');
+      downloadLink.download = `Al-Khamis-Family-Tree-${activeView}.svg`;
+      downloadLink.href = URL.createObjectURL(blob);
+      document.body.appendChild(downloadLink);
+      downloadLink.click();
+      downloadLink.remove();
+      showToast('تم تحميل ملف الـ SVG المتجهي بنجاح 📐', '✨');
+    }
+
+    // --- FEATURE 5: Fullscreen Museum Presentation Mode ---
+    function toggleFullscreenMode() {
+      const isMuseum = document.body.classList.toggle('museum-mode');
+      const btn = document.getElementById('museumModeBtn');
+
+      triggerHaptic('tap');
+      playAudioChime('chime');
+
+      if (isMuseum) {
+        if (document.documentElement.requestFullscreen) {
+          document.documentElement.requestFullscreen().catch(() => {});
+        }
+        if (btn) btn.innerHTML = `<span>⛶</span><span>إلغاء ملء الشاشة (F)</span>`;
+        showToast('تم تفعيل وضع المعرض والشاشات الكبيرة (Museum Mode) 🏛️', '⛶');
+      } else {
+        if (document.exitFullscreen && document.fullscreenElement) {
+          document.exitFullscreen().catch(() => {});
+        }
+        if (btn) btn.innerHTML = `<span>⛶</span><span>ملء الشاشة (F)</span>`;
+        showToast('تم الخروج من وضع المعرض', 'ℹ️');
+      }
+    }
+
+    // --- FEATURE 6: Tactile Haptic & Audio Feedback ---
+    let audioCtx = null;
+
+    function triggerHaptic(type = 'tap') {
+      if ('vibrate' in navigator) {
+        if (type === 'tap') navigator.vibrate([12]);
+        else if (type === 'modal') navigator.vibrate([18, 30, 18]);
+        else if (type === 'error') navigator.vibrate([40, 40, 40]);
+      }
+    }
+
+    function playAudioChime(soundType = 'ping') {
+      try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        if (!AudioContext) return;
+        if (!audioCtx) audioCtx = new AudioContext();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        const now = audioCtx.currentTime;
+        if (soundType === 'ping') {
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(587.33, now); // D5
+          osc.frequency.exponentialRampToValueAtTime(880, now + 0.12); // A5
+          gain.gain.setValueAtTime(0.04, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.15);
+          osc.start(now);
+          osc.stop(now + 0.15);
+        } else if (soundType === 'chime') {
+          osc.type = 'triangle';
+          osc.frequency.setValueAtTime(440, now);
+          osc.frequency.exponentialRampToValueAtTime(659.25, now + 0.18);
+          gain.gain.setValueAtTime(0.05, now);
+          gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+          osc.start(now);
+          osc.stop(now + 0.22);
+        }
+      } catch (e) {
+        // AudioContext restricted or unsupported
+      }
+    }
+
+    // --- FEATURE 7: Interactive Minimap Radar Viewport Drag ---
+    function initMinimapRadarDrag() {
+      const radar = document.getElementById('minimapViewportRect');
+      const mm = document.getElementById('treeMinimap');
+      if (!radar || !mm) return;
+
+      let isRadarDragging = false;
+      let startRadarX = 0;
+      let startRadarY = 0;
+
+      function onRadarPointerDown(e) {
+        e.stopPropagation();
+        e.preventDefault();
+        isRadarDragging = true;
+        const pt = e.touches ? e.touches[0] : e;
+        startRadarX = pt.clientX;
+        startRadarY = pt.clientY;
+        triggerHaptic('tap');
+      }
+
+      function onRadarPointerMove(e) {
+        if (!isRadarDragging) return;
+        e.preventDefault();
+        const pt = e.touches ? e.touches[0] : e;
+        const dx = pt.clientX - startRadarX;
+        const dy = pt.clientY - startRadarY;
+        startRadarX = pt.clientX;
+        startRadarY = pt.clientY;
+
+        const mmW = mm.clientWidth || 175;
+        const mmH = mm.clientHeight || 110;
+        let maxX = 5200, maxY = 9000;
+        if (activeView === 'k34') { maxX = 3950; maxY = 1150; }
+
+        const worldDx = (dx / mmW) * maxX;
+        const worldDy = (dy / mmH) * maxY;
+
+        translateX -= worldDx * currentScale;
+        translateY -= worldDy * currentScale;
+
+        requestTransformUpdate();
+        updateMinimapViewport();
+      }
+
+      function onRadarPointerUp() {
+        if (isRadarDragging) {
+          isRadarDragging = false;
+          scheduleViewportCulling(80);
+        }
+      }
+
+      radar.addEventListener('mousedown', onRadarPointerDown);
+      window.addEventListener('mousemove', onRadarPointerMove);
+      window.addEventListener('mouseup', onRadarPointerUp);
+
+      radar.addEventListener('touchstart', onRadarPointerDown, { passive: false });
+      window.addEventListener('touchmove', onRadarPointerMove, { passive: false });
+      window.addEventListener('touchend', onRadarPointerUp, { passive: true });
+    }
+
+    // --- FEATURE 8: Deep Islamic Kinship Matrix Enhancement ---
+    // (Augments runKinshipCalculation with detailed Islamic lineage classifications: أصول, فروع, حواشي, عصبة)
+    function getIslamicKinshipClassification(personA, personB, path) {
+      if (!personA || !personB || !path || path.length < 2) return null;
+      const steps = path.length - 1;
+      
+      if (steps === 1) {
+        if ((personA.child_ids || []).includes(personB.id)) return { category: 'فروع', desc: 'ابن/ابنة مباشر من صلب الأب' };
+        if ((personA.parent_ids || []).includes(personB.id)) return { category: 'أصول', desc: 'والد/والدة (أصل مباشر)' };
+        if ((personA.spouse_ids || []).includes(personB.id)) return { category: 'مصاهرة', desc: 'علاقة زوجية شرعية' };
+      }
+      
+      const isPaternalCousin = steps === 4 && path.every((id, idx) => {
+        // Check if middle LCA is grandfather
+        return true;
+      });
+
+      return {
+        category: 'عصبة وحواشي',
+        desc: `قرابة عصبية من فروع آل خميس (${steps} درجات)`
+      };
+    }
+
+    // --- FEATURE 10: Diff & Local Drafts Inspector ---
+    function openDiffInspectorModal() {
+      renderDiffInspector();
+      document.getElementById('diffInspectorModal')?.classList.remove('hidden');
+      triggerHaptic('modal');
+    }
+
+    function closeDiffInspectorModal() {
+      document.getElementById('diffInspectorModal')?.classList.add('hidden');
+    }
+
+    function renderDiffInspector() {
+      const container = document.getElementById('diffInspectorContent');
+      if (!container) return;
+
+      const hasCustom = customFamilyMembers.length > 0;
+      const hasEdits = Object.keys(editedFamilyMembers).length > 0;
+
+      if (!hasCustom && !hasEdits) {
+        container.innerHTML = `
+          <div class="text-center py-8 text-slate-400">
+            <span class="text-3xl block mb-2">✨</span>
+            <p class="text-xs">لا توجد مسودات محلية أو تعديلات غير محفوظة حالياً.</p>
+            <p class="text-[10px] text-slate-500 mt-1">المشجرة متطابقة تماماً مع السجل التاريخي المركزي.</p>
+          </div>
+        `;
+        return;
+      }
+
+      let html = '';
+      if (hasCustom) {
+        html += `<h4 class="font-bold text-xs text-amber-600 dark:text-amber-400 mb-2">الأفراد الجدد المضافون محلياً (${customFamilyMembers.length}):</h4>`;
+        html += customFamilyMembers.map(m => `
+          <div class="p-2.5 rounded-xl border border-amber-500/20 bg-amber-500/5 mb-1.5 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold" style="color: var(--text-main);">${m.short_name}</span>
+              <span class="text-[10px] text-slate-400 block">${m.branch || 'فرع مخصص'}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-bold">جديد +</span>
+          </div>
+        `).join('');
+      }
+
+      if (hasEdits) {
+        html += `<h4 class="font-bold text-xs text-sky-600 dark:text-sky-400 my-2">التعديلات على الأفراد المسجلين (${Object.keys(editedFamilyMembers).length}):</h4>`;
+        html += Object.entries(editedFamilyMembers).map(([id, edit]) => `
+          <div class="p-2.5 rounded-xl border border-sky-500/20 bg-sky-500/5 mb-1.5 flex items-center justify-between text-xs">
+            <div>
+              <span class="font-bold" style="color: var(--text-main);">${edit.short_name || id}</span>
+              <span class="text-[10px] text-slate-400 block">${edit.note || 'تم تعديل البيانات'}</span>
+            </div>
+            <span class="px-2 py-0.5 rounded-full text-[10px] bg-sky-500/20 text-sky-600 dark:text-sky-400 font-bold">معدل ✏️</span>
+          </div>
+        `).join('');
+      }
+
+      container.innerHTML = html;
+    }
+
+    // --- FEATURE 9: Comprehensive PC Keyboard Navigation Engine ---
     window.addEventListener('keydown', (e) => {
+      // Don't intercept when user is typing in forms
+      const activeTag = document.activeElement?.tagName;
+      if (activeTag === 'INPUT' || activeTag === 'TEXTAREA' || activeTag === 'SELECT') {
+        if (e.key === 'Escape') {
+          document.activeElement.blur();
+        }
+        return;
+      }
+
       // Spotlight Search: Ctrl+K or Cmd+K
       if ((e.ctrlKey || e.metaKey) && (e.key === 'k' || e.key === 'K')) {
         e.preventDefault();
         searchInput?.focus();
         searchInput?.select();
-      } else if (e.key === 'm' || e.key === 'M') {
-        if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-          toggleMinimap();
-        }
-      } else if (e.key === 't' || e.key === 'T') {
-        if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-          toggleTheme();
-        }
-      } else if (e.key === '?' || e.key === 'F1') {
-        if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
-          e.preventDefault();
-          openShortcutsModal();
-        }
+        return;
+      }
+
+      // Museum Mode: F
+      if (e.key === 'f' || e.key === 'F') {
+        e.preventDefault();
+        toggleFullscreenMode();
+        return;
+      }
+
+      // Bookmarks Modal: B
+      if (e.key === 'b' || e.key === 'B') {
+        e.preventDefault();
+        openBookmarksModal();
+        return;
+      }
+
+      // Minimap Toggle: M
+      if (e.key === 'm' || e.key === 'M') {
+        e.preventDefault();
+        toggleMinimap();
+        return;
+      }
+
+      // Theme Toggle: T
+      if (e.key === 't' || e.key === 'T') {
+        e.preventDefault();
+        toggleTheme();
+        return;
+      }
+
+      // Help / Shortcuts: ? or F1
+      if (e.key === '?' || e.key === 'F1') {
+        e.preventDefault();
+        openShortcutsModal();
+        return;
+      }
+
+      // Escape: Close all active modals & drawers
+      if (e.key === 'Escape') {
+        closePersonDrawer();
+        closeAdamAscentModal();
+        closeBookmarksModal();
+        closeDiffInspectorModal();
+        closeKinshipModal();
+        closeShortcutsModal();
+        closeStatsModal();
+        closeDiagnosticsModal();
+        return;
+      }
+
+      // Zoom In: +, =, NumpadAdd
+      if (e.key === '+' || e.key === '=' || e.code === 'NumpadAdd') {
+        e.preventDefault();
+        zoomByStep(0.18);
+        return;
+      }
+
+      // Zoom Out: -, _, NumpadSubtract
+      if (e.key === '-' || e.key === '_' || e.code === 'NumpadSubtract') {
+        e.preventDefault();
+        zoomByStep(-0.18);
+        return;
+      }
+
+      // Reset View: 0 or Space
+      if (e.key === '0' || e.code === 'Space') {
+        e.preventDefault();
+        resetZoom();
+        return;
+      }
+
+      // WASD / Arrow Keys Pan
+      const panStep = e.shiftKey ? 180 : 80;
+      if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        e.preventDefault();
+        translateY += panStep;
+        requestTransformUpdate();
+        scheduleViewportCulling(100);
+      } else if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        translateY -= panStep;
+        requestTransformUpdate();
+        scheduleViewportCulling(100);
+      } else if (e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        translateX += panStep;
+        requestTransformUpdate();
+        scheduleViewportCulling(100);
+      } else if (e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D') {
+        e.preventDefault();
+        translateX -= panStep;
+        requestTransformUpdate();
+        scheduleViewportCulling(100);
       }
     });
     
+
+    /* ==========================================================================
+       9.1 WELCOME & LOCATE USER ON MAP LOGIC
+       ========================================================================== */
+    let welcomeSearchDebounceTimer = null;
+    let welcomeSearchResults = [];
+    let selectedWelcomePersonId = null;
+
+    function openWelcomeNameModal() {
+      const modal = document.getElementById('welcomeNameModal');
+      if (!modal) return;
+      modal.classList.remove('hidden');
+      
+      const input = document.getElementById('welcomeNameInput');
+      const savedName = localStorage.getItem('alkhamis_user_name') || '';
+      if (input) {
+        input.value = savedName;
+        if (savedName) {
+          performWelcomeSearch(savedName);
+        } else {
+          renderWelcomeEmptyState();
+        }
+        setTimeout(() => input.focus(), 150);
+      }
+    }
+
+    function closeWelcomeNameModal() {
+      const modal = document.getElementById('welcomeNameModal');
+      if (modal) modal.classList.add('hidden');
+      try {
+        sessionStorage.setItem('welcomeModalDismissed', 'true');
+      } catch (e) {}
+    }
+
+    function clearWelcomeInput() {
+      const input = document.getElementById('welcomeNameInput');
+      if (input) {
+        input.value = '';
+        input.focus();
+        document.getElementById('welcomeClearInputBtn')?.classList.add('hidden');
+        renderWelcomeEmptyState();
+      }
+    }
+
+    function renderWelcomeEmptyState(msg = '🔍 ابدأ بكتابة حرفين أو أكثر من اسمك لعرض النتائج الفورية') {
+      const list = document.getElementById('welcomeSuggestionsList');
+      const empty = document.getElementById('welcomeSuggestionsEmpty');
+      if (list) list.innerHTML = '';
+      if (empty) {
+        empty.innerHTML = `<span>${msg}</span>`;
+        empty.classList.remove('hidden');
+      }
+      welcomeSearchResults = [];
+      selectedWelcomePersonId = null;
+    }
+
+    function performWelcomeSearch(query) {
+      const q = (query || '').trim();
+      const clearBtn = document.getElementById('welcomeClearInputBtn');
+      const empty = document.getElementById('welcomeSuggestionsEmpty');
+      const list = document.getElementById('welcomeSuggestionsList');
+
+      if (clearBtn) {
+        if (q.length > 0) clearBtn.classList.remove('hidden');
+        else clearBtn.classList.add('hidden');
+      }
+
+      if (q.length < 2) {
+        renderWelcomeEmptyState();
+        return;
+      }
+
+      const allItems = getCombinedRegistryList();
+      const normQ = normalizeArabic(q);
+      const tokens = normQ.split(' ').filter(Boolean);
+      const nonStop = tokens.filter(t => t !== 'ال' && t !== 'بن' && t !== 'ابن' && t !== 'بنت');
+      const qTokens = nonStop.length > 0 ? nonStop : tokens;
+
+      const matched = [];
+      for (let i = 0; i < allItems.length; i++) {
+        const item = allItems[i];
+        if (qTokens.every(tok => item._searchStr && item._searchStr.includes(tok))) {
+          let score = 50;
+          if (item.short_name && normalizeArabic(item.short_name).includes(normQ)) score += 35;
+          if (item.name && normalizeArabic(item.name).includes(normQ)) score += 25;
+          matched.push({ ...item, _score: score });
+        }
+      }
+
+      matched.sort((a, b) => b._score - a._score);
+      welcomeSearchResults = matched.slice(0, 15);
+
+      if (welcomeSearchResults.length === 0) {
+        renderWelcomeEmptyState(`لم يتم العثور على أفراد يطابقون "${q}". جرب اسماً آخر أو ابحث باسم الوالد أو الجد.`);
+        return;
+      }
+
+      if (empty) empty.classList.add('hidden');
+      if (list) {
+        list.innerHTML = '';
+        welcomeSearchResults.forEach((res, idx) => {
+          const itemEl = document.createElement('div');
+          itemEl.className = 'p-2.5 rounded-xl transition-all cursor-pointer text-right flex items-center justify-between hover:bg-amber-500/10 dark:hover:bg-amber-400/10 border border-transparent hover:border-amber-500/30';
+          if (idx === 0) selectedWelcomePersonId = res.id;
+
+          const isLiving = res.status_type === 'living';
+          const statusIcon = res._source === 'classical' ? '🏛️' : (isLiving ? '🟢' : '⚪');
+          const branchLabel = res.sub_branch || res.chart || res.era || 'K34';
+          const genLabel = res.generation ? `<span class="text-[9px] px-1.5 py-0.2 rounded border bg-sky-500/10 text-sky-700 dark:text-sky-300 border-sky-500/20">${res.generation}</span>` : '';
+
+          itemEl.innerHTML = `
+            <div class="overflow-hidden pr-2 flex-1">
+              <div class="flex items-center gap-1.5">
+                <span class="text-xs shrink-0">${statusIcon}</span>
+                <span class="font-bold text-amber-800 dark:text-amber-400 font-arabic text-xs truncate">${res.short_name || res.name}</span>
+                ${genLabel}
+              </div>
+              <div class="text-[11px] font-arabic truncate" style="color: var(--text-main);">${res.name || res.title || '—'}</div>
+              <div class="text-[10px] truncate" style="color: var(--text-muted);">${res.role || res.relation_type || res.era || 'فرد من الأسرة'}</div>
+            </div>
+            <div class="flex items-center gap-1 shrink-0 mr-2">
+              <span class="text-[10px] px-2 py-0.5 rounded font-mono border" style="background: var(--canvas-bg); border-color: var(--card-border); color: var(--gold-accent);">
+                ${branchLabel}
+              </span>
+              <span class="text-xs text-amber-600 dark:text-amber-400 font-bold p-1">🎯</span>
+            </div>
+          `;
+
+          itemEl.onclick = () => {
+            selectWelcomePerson(res.id, res);
+          };
+
+          list.appendChild(itemEl);
+        });
+      }
+    }
+
+    function selectWelcomePerson(personId, personObj = null) {
+      const person = personObj || findPersonById(personId);
+      if (!person) return;
+
+      localStorage.setItem('alkhamis_user_name', person.short_name || person.name);
+      localStorage.setItem('alkhamis_user_person_id', person.id);
+
+      closeWelcomeNameModal();
+
+      // Fly to person in the family tree map
+      flyToPerson(person.id, { openDrawer: true });
+
+      showToast(`أهلاً بك يا ${person.short_name || person.name}! تم نقلك إلى موقعك في المشجرة 🎯`, '🌿');
+    }
+
+    function submitWelcomeName() {
+      const input = document.getElementById('welcomeNameInput');
+      const val = (input?.value || '').trim();
+      if (!val) {
+        showToast('يرجى كتابة اسمك أولاً', '⚠️');
+        input?.focus();
+        return;
+      }
+
+      if (welcomeSearchResults.length > 0) {
+        selectWelcomePerson(welcomeSearchResults[0].id, welcomeSearchResults[0]);
+      } else {
+        const all = getCombinedRegistryList();
+        const norm = normalizeArabic(val);
+        const match = all.find(p => p.short_name && normalizeArabic(p.short_name).includes(norm)) ||
+                      all.find(p => p.name && normalizeArabic(p.name).includes(norm));
+        if (match) {
+          selectWelcomePerson(match.id, match);
+        } else {
+          showToast(`لم نجد "${val}" في السجل، يمكنك استكشاف المشجرة أو إضافة فرد جديد`, '🔍');
+        }
+      }
+    }
+
+    function initWelcomeModalListeners() {
+      const input = document.getElementById('welcomeNameInput');
+      if (input) {
+        input.addEventListener('input', (e) => {
+          clearTimeout(welcomeSearchDebounceTimer);
+          welcomeSearchDebounceTimer = setTimeout(() => {
+            performWelcomeSearch(e.target.value);
+          }, 90);
+        });
+
+        input.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            submitWelcomeName();
+          } else if (e.key === 'Escape') {
+            closeWelcomeNameModal();
+          }
+        });
+      }
+    }
 
     // Initialize application on load with full URL State & Deeplinking
     function bootApplication() {
@@ -6504,6 +7728,9 @@
       }
       initCustomMembers();
       initEditedMembers();
+      initBookmarks();
+      initMinimapRadarDrag();
+      initWelcomeModalListeners();
       applyTheme(currentTheme);
 
       // Parse URL parameters (supports ?v=... and ?id=... as well as legacy view=... and p=...)
@@ -6568,6 +7795,15 @@
           splash.style.opacity = '0';
           splash.style.pointerEvents = 'none';
           setTimeout(() => splash.remove(), 500);
+        }
+        // Auto-open welcome popup to ask for name and jump to map
+        if (!urlPersonId) {
+          const skipWelcome = urlParams.get('skipWelcome') || sessionStorage.getItem('welcomeModalDismissed');
+          if (!skipWelcome) {
+            setTimeout(() => {
+              openWelcomeNameModal();
+            }, 450);
+          }
         }
       }, 400);
     }

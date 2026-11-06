@@ -5,7 +5,7 @@ const path = require('path');
 
 const PORT = 3599;
 const EVIDENCE_DIR = path.resolve(__dirname, 'test_evidence');
-const ARTIFACT_DIR = '/home/gohako/.gemini/antigravity/brain/d5ec3225-0e2e-4f11-8664-16ff1786d0c2';
+const ARTIFACT_DIR = '/home/gohako/.gemini/antigravity/brain/bcf108c1-cf36-4375-9144-6fb768eddfab';
 
 if (!fs.existsSync(EVIDENCE_DIR)) fs.mkdirSync(EVIDENCE_DIR, { recursive: true });
 if (!fs.existsSync(ARTIFACT_DIR)) fs.mkdirSync(ARTIFACT_DIR, { recursive: true });
@@ -65,7 +65,7 @@ async function runTests() {
   console.log('\n--- 1. Testing PC Desktop (1920x1080) ---');
   const page1080 = await browser.newPage();
   await page1080.setViewport({ width: 1920, height: 1080, deviceScaleFactor: 1 });
-  await page1080.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await page1080.goto(`http://localhost:${PORT}?skipWelcome=1`, { waitUntil: 'networkidle0' });
 
   // 1.1 Master Tree initial load
   const cardCount1080 = await page1080.evaluate(() => document.querySelectorAll('.tree-card').length);
@@ -182,17 +182,64 @@ async function runTests() {
   // Dismiss search dropdown
   await page1080.keyboard.press('Escape');
 
-  // 1.7 Theme Toggling between Parchment Heirloom & Dark Neural Archival
-  const themeToggleTest = await page1080.evaluate(() => {
-    const initialT = currentTheme;
-    toggleTheme();
-    const darkT = currentTheme;
-    const isDarkClass = document.documentElement.classList.contains('dark');
-    return { initialT, darkT, isDarkClass };
+  // 1.8 FEATURE 1 & 2: Voice Recitation & Adam Ascent Modal Verification
+  const featureTest12 = await page1080.evaluate(() => {
+    selectPerson('IND_1', 'k34');
+    const voiceBtn = document.getElementById('drawerVoiceReciteBtn') || document.getElementById('voiceRecitationBtn');
+    const hasVoiceBtn = !!voiceBtn;
+    
+    // Test Adam Ascent
+    openAdamAscentModal('IND_1');
+    const adamModal = document.getElementById('adamAscentModal');
+    const isAdamModalOpen = adamModal && !adamModal.classList.contains('hidden');
+    const timelineItems = document.querySelectorAll('#adamAscentTimeline > div, #adamAscentLadderContainer > div').length;
+    closeAdamAscentModal();
+
+    return { hasVoiceBtn, isAdamModalOpen, timelineItems };
   });
-  results.pc_1080p.theme_toggling = (themeToggleTest.darkT === 'dark' && themeToggleTest.isDarkClass) ? 'PASS' : 'FAIL';
-  console.log(`1.7 Theme toggled to: ${themeToggleTest.darkT} -> ${results.pc_1080p.theme_toggling}`);
-  await saveScreenshot(page1080, 'pc_1080p_dark_theme.png');
+  results.pc_1080p.voice_and_adam_ascent = (featureTest12.hasVoiceBtn && featureTest12.isAdamModalOpen && featureTest12.timelineItems > 20) ? 'PASS' : 'FAIL';
+  console.log(`1.8 Voice & Adam Ascent Test: ${JSON.stringify(featureTest12)} -> ${results.pc_1080p.voice_and_adam_ascent}`);
+  await saveScreenshot(page1080, 'pc_1080p_adam_ascent_modal.png');
+
+  // 1.9 FEATURE 3 & 10: Bookmarks & Diff Inspector Verification
+  const featureTest310 = await page1080.evaluate(() => {
+    // Add IND_1 to bookmarks
+    toggleBookmark('IND_1');
+    const isFav = isPersonBookmarked('IND_1');
+    const badgeCount = document.getElementById('bookmarksCountBadge').textContent;
+
+    // Open Bookmarks Modal
+    openBookmarksModal();
+    const bmModal = document.getElementById('bookmarksModal');
+    const isBmOpen = bmModal && !bmModal.classList.contains('hidden');
+    closeBookmarksModal();
+
+    // Open Diff Inspector Modal
+    openDiffInspectorModal();
+    const diffModal = document.getElementById('diffInspectorModal');
+    const isDiffOpen = diffModal && !diffModal.classList.contains('hidden');
+    closeDiffInspectorModal();
+
+    return { isFav, badgeCount, isBmOpen, isDiffOpen };
+  });
+  results.pc_1080p.bookmarks_and_diff = (featureTest310.isFav && featureTest310.badgeCount === '1' && featureTest310.isBmOpen && featureTest310.isDiffOpen) ? 'PASS' : 'FAIL';
+  console.log(`1.9 Bookmarks & Diff Test: ${JSON.stringify(featureTest310)} -> ${results.pc_1080p.bookmarks_and_diff}`);
+  await saveScreenshot(page1080, 'pc_1080p_bookmarks_modal.png');
+
+  // 1.10 FEATURE 5 & 9: Fullscreen Museum Mode & Keyboard Pan/Zoom
+  const featureTest59 = await page1080.evaluate(() => {
+    toggleFullscreenMode();
+    const isMuseum = document.body.classList.contains('museum-mode');
+    toggleFullscreenMode(); // revert
+
+    const beforeScale = currentScale;
+    zoomByStep(0.2);
+    const afterScale = currentScale;
+
+    return { isMuseum, zoomWorks: afterScale > beforeScale };
+  });
+  results.pc_1080p.museum_mode_and_keyboard = (featureTest59.isMuseum && featureTest59.zoomWorks) ? 'PASS' : 'FAIL';
+  console.log(`1.10 Museum Mode & Keyboard: ${JSON.stringify(featureTest59)} -> ${results.pc_1080p.museum_mode_and_keyboard}`);
 
   await page1080.close();
 
@@ -202,7 +249,7 @@ async function runTests() {
   console.log('\n--- 2. Testing PC Desktop (2560x1440 QHD) ---');
   const page1440 = await browser.newPage();
   await page1440.setViewport({ width: 2560, height: 1440, deviceScaleFactor: 1 });
-  await page1440.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await page1440.goto(`http://localhost:${PORT}?skipWelcome=1`, { waitUntil: 'networkidle0' });
 
   const qhdInfo = await page1440.evaluate(() => {
     const cardCount = document.querySelectorAll('.tree-card').length;
@@ -229,7 +276,7 @@ async function runTests() {
   console.log('\n--- 3. Testing Mobile iPhone (390x844) ---');
   const pageIphone = await browser.newPage();
   await pageIphone.setViewport({ width: 390, height: 844, isMobile: true, hasTouch: true, deviceScaleFactor: 2 });
-  await pageIphone.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await pageIphone.goto(`http://localhost:${PORT}?skipWelcome=1`, { waitUntil: 'networkidle0' });
 
   // 3.1 Responsive Header Layout
   const iphoneHeader = await pageIphone.evaluate(() => {
@@ -385,7 +432,7 @@ async function runTests() {
   console.log('\n--- 4. Testing Mobile Android (412x915) ---');
   const pageAndroid = await browser.newPage();
   await pageAndroid.setViewport({ width: 412, height: 915, isMobile: true, hasTouch: true, deviceScaleFactor: 2.625 });
-  await pageAndroid.goto(`http://localhost:${PORT}`, { waitUntil: 'networkidle0' });
+  await pageAndroid.goto(`http://localhost:${PORT}?skipWelcome=1`, { waitUntil: 'networkidle0' });
 
   // 4.1 Android Responsive Header Layout
   const androidHeader = await pageAndroid.evaluate(() => {
